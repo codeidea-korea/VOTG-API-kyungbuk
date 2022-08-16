@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: 'ASH-API-dev',
+            name: 'VOTG-API-dev',
             script: './app.js',
             instances: 1,
             time: true,
@@ -14,7 +14,7 @@ module.exports = {
             },
         },
         {
-            name: 'ASH-API-prod',
+            name: 'VOTG-API-prod',
             script: './app.js',
             instances: 1,
             time: true,
