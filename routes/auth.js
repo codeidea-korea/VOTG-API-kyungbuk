@@ -30,11 +30,11 @@ const expiresInAcsTK = 300 // 5 Min
 const expiresInRefTK = '1d' // 1 Day
 
 /* Twilio*/
-const accountSid = process.env.TWILIO_ACCOUNT_SID
-const authToken = process.env.TWILIO_AUTH_TOKEN
-const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
-const fromNumber = process.env.TWILIO_FROM_NUMBER
-const twilio = require('twilio')(accountSid, authToken)
+// const accountSid = process.env.TWILIO_ACCOUNT_SID
+// const authToken = process.env.TWILIO_AUTH_TOKEN
+// const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
+// const fromNumber = process.env.TWILIO_FROM_NUMBER
+// const twilio = require('twilio')(accountSid, authToken)
 
 /* NCP SENS*/
 const NCP_accessKey = process.env.NCP_ACCESS_KEY
@@ -346,56 +346,56 @@ router.get('/user/phone', async (req, res, next) => {
 })
 
 /* Message Verification : Send Code*/
-router.post('/sendCodeTW', async (req, res) => {
-    try {
-        const { phoneNumber } = req.body
-        if (phoneNumber == undefined) {
-            return res.status(402).json({
-                isSuccess: false,
-                code: 402,
-                msg: 'Input Empty',
-                payload: null,
-            })
-        }
+// router.post('/sendCodeTW', async (req, res) => {
+//     try {
+//         const { phoneNumber } = req.body
+//         if (phoneNumber == undefined) {
+//             return res.status(402).json({
+//                 isSuccess: false,
+//                 code: 402,
+//                 msg: 'Input Empty',
+//                 payload: null,
+//             })
+//         }
 
-        // 계정 확보되면 문자 발송 코드들 넣을것
-        const interPhoneNo = `+82${phoneNumber.substr(1)}`
-        const veriCode = Math.random(0.9, 1).toString().substr(2, 6)
+//         // 계정 확보되면 문자 발송 코드들 넣을것
+//         const interPhoneNo = `+82${phoneNumber.substr(1)}`
+//         const veriCode = Math.random(0.9, 1).toString().substr(2, 6)
 
-        twilio.messages
-            .create({
-                messagingServiceSid,
-                from: fromNumber,
-                to: `${interPhoneNo}`,
-                body: `[ASH] 인증번호\n[${veriCode}]`,
-            })
-            .then(async (message) => {
-                res.status(200).json({
-                    isSuccess: true,
-                    code: 200,
-                    msg: 'ok',
-                    payload: message,
-                })
-            })
-            .catch((error) => {
-                console.error(error)
-                return res.status(403).json({
-                    isSuccess: false,
-                    code: 403,
-                    msg: 'Forbidden',
-                    payload: error,
-                })
-            })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).json({
-            isSuccess: false,
-            code: 400,
-            msg: 'Bad Request',
-            payload: error,
-        })
-    }
-})
+//         twilio.messages
+//             .create({
+//                 messagingServiceSid,
+//                 from: fromNumber,
+//                 to: `${interPhoneNo}`,
+//                 body: `[ASH] 인증번호\n[${veriCode}]`,
+//             })
+//             .then(async (message) => {
+//                 res.status(200).json({
+//                     isSuccess: true,
+//                     code: 200,
+//                     msg: 'ok',
+//                     payload: message,
+//                 })
+//             })
+//             .catch((error) => {
+//                 console.error(error)
+//                 return res.status(403).json({
+//                     isSuccess: false,
+//                     code: 403,
+//                     msg: 'Forbidden',
+//                     payload: error,
+//                 })
+//             })
+//     } catch (error) {
+//         console.error(error)
+//         return res.status(400).json({
+//             isSuccess: false,
+//             code: 400,
+//             msg: 'Bad Request',
+//             payload: error,
+//         })
+//     }
+// })
 
 /* Message Verification : Send Code*/
 router.post('/sendCodeSENS', async (req, res) => {
