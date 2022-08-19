@@ -34,6 +34,7 @@ const RouterIndex = require('./routes/index')
 const RouterApi = require('./routes/api')
 const RouterAuth = require('./routes/auth')
 const RouterImp = require('./routes/imp')
+const RouterPayment = require('./routes/payment')
 
 /* Mode & Debug Url Config */
 const prodChecker = process.env.NODE_ENV.trim().toLowerCase() === 'production'
@@ -121,6 +122,7 @@ app.use('/', RouterIndex)
 app.use('/api', RouterApi)
 app.use('/auth', RouterAuth)
 app.use('/imp', RouterImp)
+app.use('/payment', RouterPayment)
 
 /* Url Router End-point Setting */
 app.get('*', (req, res, next) => {

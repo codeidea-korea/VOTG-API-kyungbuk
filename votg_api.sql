@@ -81,6 +81,57 @@ CREATE OR REPLACE TABLE UsersSyncSNS
     constraint fk_sync_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+DROP TABLE UsersPaymentCard;
+CREATE OR REPLACE TABLE UsersPaymentCard
+(
+    UserCode                binary(16)                      null comment '사용자 고유식별자',
+    registerCode            varchar(255)                    null comment '카드 고유 식별번호',
+    cardNickName            varchar(255)                not null comment '카드 별명',
+    cardCode                varchar(255)                not null comment '카드 코드',
+    cardName                varchar(255)                not null comment '카드 이름',
+    cardNumber              varchar(255)                not null comment '카드 번호',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, registerCode),
+    constraint fk_payment_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
+
+DROP TABLE UsersPaymentPasswd;
+CREATE OR REPLACE TABLE UsersPaymentPasswd
+(
+    UserCode                binary(16)                      null comment '사용자 고유식별자',
+    password                varchar(100)                not null comment '비밀번호',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode),
+    constraint fk_payment_passwd_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
+
+# 13cf0bcf-cb73-47d8-8002-47cae6982b99
+SELECT * FROM Users WHERE code = (SELECT UserCode FROM UsersPaymentCard WHERE registerCode = '13cf0bcfcb7347d8800247cae6982b99-1024');
+
+DROP TABLE UsersPaymentRequest;
+CREATE OR REPLACE TABLE UsersPaymentRequest
+(
+    UserCode                binary(16)                       null comment '사용자 고유식별자',
+    issuedAt                varchar(255)                 not null comment '처리 시기',
+    status                  varchar(255)                 not null comment '상태',
+    impUid                  varchar(255)                     null comment '아임포트 식별번호',
+    registerCode            varchar(255)                     null comment '카드 고유 식별번호',
+    orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid',
+    orderName               varchar(255)                 not null comment '주문 이름=name',
+    amount                  varchar(255)                 not null comment '주문 금액',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, registerCode),
+    constraint fk_payment_request_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
 
 DROP TABLE Organizations;
 CREATE OR REPLACE TABLE Organizations

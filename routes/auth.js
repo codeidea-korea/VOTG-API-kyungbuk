@@ -206,6 +206,19 @@ router.post('/user', async (req, res, next) => {
             ],
         })
 
+        const payment = await DB.UsersPaymentCard.findAll({
+            where: {
+                UserCode: user.code,
+            },
+            attributes: ['cardNickName', 'cardName', 'cardNumber'],
+        })
+        const paymentPasswd = await DB.UsersPaymentPasswd.findAll({
+            where: {
+                UserCode: user.code,
+            },
+            attributes: ['createdAt', 'updatedAt', 'deletedAt'],
+        })
+
         const organization = await DB.Organizations.findAll({
             where: {
                 OwnerCode: user.code,
@@ -217,6 +230,8 @@ router.post('/user', async (req, res, next) => {
             ...user.dataValues,
             ...detail.dataValues,
             organization,
+            payment,
+            paymentPasswd: paymentPasswd.length,
         }
         // console.log(user.code)
         debug.server('/user ', userData)

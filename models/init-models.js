@@ -5,6 +5,9 @@ var _Services = require("./Services");
 var _ServicesCustomers = require("./ServicesCustomers");
 var _Users = require("./Users");
 var _UsersDetail = require("./UsersDetail");
+var _UsersPaymentCard = require("./UsersPaymentCard");
+var _UsersPaymentPasswd = require("./UsersPaymentPasswd");
+var _UsersPaymentRequest = require("./UsersPaymentRequest");
 var _UsersSyncSNS = require("./UsersSyncSNS");
 
 function initModels(sequelize) {
@@ -14,6 +17,9 @@ function initModels(sequelize) {
   var ServicesCustomers = _ServicesCustomers(sequelize, DataTypes);
   var Users = _Users(sequelize, DataTypes);
   var UsersDetail = _UsersDetail(sequelize, DataTypes);
+  var UsersPaymentCard = _UsersPaymentCard(sequelize, DataTypes);
+  var UsersPaymentPasswd = _UsersPaymentPasswd(sequelize, DataTypes);
+  var UsersPaymentRequest = _UsersPaymentRequest(sequelize, DataTypes);
   var UsersSyncSNS = _UsersSyncSNS(sequelize, DataTypes);
 
   Organizations.belongsToMany(Users, { as: 'UserCode_Users', through: OrganizationsMembers, foreignKey: "OrgCode", otherKey: "UserCode" });
@@ -34,6 +40,12 @@ function initModels(sequelize) {
   Users.hasMany(ServicesCustomers, { as: "ServicesCustomers", foreignKey: "UserCode"});
   UsersDetail.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasOne(UsersDetail, { as: "UsersDetail", foreignKey: "UserCode"});
+  UsersPaymentCard.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasMany(UsersPaymentCard, { as: "UsersPaymentCards", foreignKey: "UserCode"});
+  UsersPaymentPasswd.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasOne(UsersPaymentPasswd, { as: "UsersPaymentPasswd", foreignKey: "UserCode"});
+  UsersPaymentRequest.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasMany(UsersPaymentRequest, { as: "UsersPaymentRequests", foreignKey: "UserCode"});
   UsersSyncSNS.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersSyncSNS, { as: "UsersSyncSNs", foreignKey: "UserCode"});
 
@@ -44,6 +56,9 @@ function initModels(sequelize) {
     ServicesCustomers,
     Users,
     UsersDetail,
+    UsersPaymentCard,
+    UsersPaymentPasswd,
+    UsersPaymentRequest,
     UsersSyncSNS,
   };
 }

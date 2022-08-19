@@ -48,6 +48,21 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: true,
       comment: "0: 생략, 1: 남성, 2: 여성,"
+    },
+    address_road: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "도로면 주소 전체"
+    },
+    address_detail: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "상세 주소"
+    },
+    address_zip: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "우편번호"
     }
   }, {
     sequelize,
