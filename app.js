@@ -85,7 +85,7 @@ if (prodChecker) {
     app.use(morgan('dev'))
     app.use(
         cors({
-            origin: true,
+            origin: [process.env.DEV_FRONT_URL, process.env.DEV_API_URL],
             credentials: true,
         }),
     )
