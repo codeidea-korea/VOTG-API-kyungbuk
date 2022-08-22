@@ -11,7 +11,7 @@ module.exports = function(sequelize, DataTypes) {
         key: 'code'
       }
     },
-    password: {
+    billingPasswd: {
       type: DataTypes.STRING(100),
       allowNull: false,
       comment: "비밀번호"

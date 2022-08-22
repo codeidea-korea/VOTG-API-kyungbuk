@@ -126,10 +126,14 @@ router.get('/check', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/passwdCheck', async (req, res) => {
     try {
-        const { code, name } = req.body
-        res.status(200).json({ code: code, name: name })
+        const { UserCode, billingPasswd } = req.body
+        const Users = await DB.UsersPaymentPasswd.findOne({
+            where: { UserCode: Buffer.from(UserCode, 'hex') },
+        })
+        const result = await bcrypt.compare(billingPasswd, Users.billingPasswd)
+        res.status(200).json({ billingPasswdCheck: result })
     } catch (error) {
         res.status(400).json({ result: '0', error: error })
     }

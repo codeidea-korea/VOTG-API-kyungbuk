@@ -102,7 +102,7 @@ DROP TABLE UsersPaymentPasswd;
 CREATE OR REPLACE TABLE UsersPaymentPasswd
 (
     UserCode                binary(16)                      null comment '사용자 고유식별자',
-    password                varchar(100)                not null comment '비밀번호',
+    billingPasswd                varchar(100)                not null comment '비밀번호',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',

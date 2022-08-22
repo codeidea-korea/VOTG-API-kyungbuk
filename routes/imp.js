@@ -159,6 +159,7 @@ router.post('/issueBilling', async (req, res) => {
             cardExpiration,
             pwd2Digit,
             birthday,
+            billingPasswd,
         } = req.body
         //REST API Key: 1538504562143613
         //REST API Secret
@@ -208,6 +209,20 @@ router.post('/issueBilling', async (req, res) => {
                 cardNumber: card_number,
             })
 
+            const exCardLength = await DB.UsersPaymentCard.findAll({
+                where: {
+                    UserCode: Buffer.from(UserCode, 'hex'),
+                },
+                attributes: ['cardName'],
+            })
+            if (exCardLength.length == 0) {
+                const hashedPassword = await bcrypt.hash(billingPasswd, 12)
+                const UsersPaymentPasswd = await DB.UsersPaymentPasswd.create({
+                    UserCode: Buffer.from(UserCode, 'hex'),
+                    billingPasswd: hashedPassword,
+                })
+            }
+
             return res.status(201).json({
                 isSuccess: true,
                 code: 201,
@@ -232,7 +247,13 @@ router.post('/issueBilling', async (req, res) => {
 /* Just Routing */
 router.delete('/deleteBilling', async (req, res) => {
     try {
-        const registerCode = req.query.registerCode
+        const UserCode = req.query.UserCode
+        const cardNumber = req.query.cardNumber
+        const CardInfo = await DB.UsersPaymentCard.findOne({
+            where: { UserCode: Buffer.from(UserCode, 'hex'), cardNumber: cardNumber },
+        })
+
+        console.log('CardInfo', CardInfo)
         //REST API Key: 1538504562143613
         //REST API Secret
         /*
@@ -254,11 +275,11 @@ router.delete('/deleteBilling', async (req, res) => {
         console.log('access_token', access_token)
 
         const deleteBilling = await axios({
-            url: `https://api.iamport.kr/subscribe/customers/${registerCode}`,
+            url: `https://api.iamport.kr/subscribe/customers/${CardInfo.registerCode}`,
             method: 'delete',
             headers: { Authorization: access_token }, // 인증 토큰 Authorization header에 추가
             params: {
-                customer_uid: registerCode,
+                customer_uid: CardInfo.registerCode,
             },
         })
         const { code, message } = deleteBilling.data
@@ -267,9 +288,22 @@ router.delete('/deleteBilling', async (req, res) => {
         if (code === 0) {
             // 빌링키 삭제 성공
             const userPaymentCardDelete = await DB.UsersPaymentCard.destroy({
-                where: { registerCode: registerCode },
+                where: { registerCode: CardInfo.registerCode },
                 force: true,
             })
+
+            const exCardLength = await DB.UsersPaymentCard.findAll({
+                where: {
+                    UserCode: Buffer.from(UserCode, 'hex'),
+                },
+                attributes: ['cardName'],
+            })
+            if (exCardLength.length == 0) {
+                const userPaymentPasswdDelete = await DB.UsersPaymentPasswd.destroy({
+                    where: { UserCode: Buffer.from(UserCode, 'hex') },
+                    force: true,
+                })
+            }
             return res.status(201).json({
                 isSuccess: true,
                 code: 201,
