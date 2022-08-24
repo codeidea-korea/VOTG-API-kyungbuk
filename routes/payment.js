@@ -133,9 +133,28 @@ router.post('/passwdCheck', async (req, res) => {
             where: { UserCode: Buffer.from(UserCode, 'hex') },
         })
         const result = await bcrypt.compare(billingPasswd, Users.billingPasswd)
-        res.status(200).json({ billingPasswdCheck: result })
+        if (result) {
+            return res.status(200).json({
+                isSuccess: true,
+                code: 200,
+                msg: 'check complete',
+                payload: result,
+            })
+        } else {
+            return res.status(200).json({
+                isSuccess: false,
+                code: 401,
+                msg: 'check complete',
+                payload: result,
+            })
+        }
     } catch (error) {
-        res.status(400).json({ result: '0', error: error })
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
     }
 })
 

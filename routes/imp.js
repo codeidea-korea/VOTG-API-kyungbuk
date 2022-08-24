@@ -200,15 +200,6 @@ router.post('/issueBilling', async (req, res) => {
             // 빌링키 발급 성공
             const { card_code, card_name, card_number } = response
 
-            const userPaymentCard = await DB.UsersPaymentCard.create({
-                UserCode: Buffer.from(UserCode, 'hex'),
-                registerCode: customerUid,
-                cardNickName: cardNickName,
-                cardCode: card_code,
-                cardName: card_name,
-                cardNumber: card_number,
-            })
-
             const exCardLength = await DB.UsersPaymentCard.findAll({
                 where: {
                     UserCode: Buffer.from(UserCode, 'hex'),
@@ -222,6 +213,15 @@ router.post('/issueBilling', async (req, res) => {
                     billingPasswd: hashedPassword,
                 })
             }
+
+            const userPaymentCard = await DB.UsersPaymentCard.create({
+                UserCode: Buffer.from(UserCode, 'hex'),
+                registerCode: customerUid,
+                cardNickName: cardNickName,
+                cardCode: card_code,
+                cardName: card_name,
+                cardNumber: card_number,
+            })
 
             return res.status(201).json({
                 isSuccess: true,
@@ -404,7 +404,11 @@ router.post('/onetimeBilling', async (req, res) => {
 
 router.post('/payBilling', async (req, res) => {
     try {
-        const { registerCode, merchantUid } = req.body
+        const { UserCode, cardNumber, orderType, orderName, price } = req.body
+
+        const CardInfo = await DB.UsersPaymentCard.findOne({
+            where: { UserCode: Buffer.from(UserCode, 'hex'), cardNumber: cardNumber },
+        })
         //REST API Key: 1538504562143613
         //REST API Secret
         /*
@@ -425,35 +429,15 @@ router.post('/payBilling', async (req, res) => {
         const { access_token } = getToken.data.response // 인증 토큰
         console.log('access_token', access_token)
 
-        // const userPaymentCard = await DB.UsersPaymentCard.create({
-        //     UserCode: Buffer.from(UserCode, 'hex'),
-        //     registerCode: customer_uid,
-        //     cardName: cardName,
-        //     cardNumber: cardNumber,
-        //     cardExpiration: cardExpiration,
-        //     pwd2Digit: pwd2Digit,
-        //     birthday: birthday,
-        // })
-
-        // return res.status(200).json({
-        //     isSuccess: true,
-        //     code: 201,
-        //     msg: 'Card Info Regist Success',
-        //     payload: {
-        //         imp_access_token: access_token,
-        //         data: userPaymentCard,
-        //     },
-        // })
-
         const paymentResult = await axios({
             url: `https://api.iamport.kr/subscribe/payments/again`,
             method: 'post',
             headers: { Authorization: access_token }, // 인증 토큰을 Authorization header에 추가
             data: {
-                customer_uid: registerCode,
-                merchant_uid: merchantUid, // 새로 생성한 결제(재결제)용 주문 번호
-                amount: 1000,
-                name: '뷰즈온더고 요금결제 BASIC',
+                customer_uid: CardInfo.registerCode,
+                merchant_uid: `${orderType}-${UserCode}-${Date.now()}`, // 새로 생성한 결제(재결제)용 주문 번호
+                amount: price,
+                name: orderName,
             },
         })
 

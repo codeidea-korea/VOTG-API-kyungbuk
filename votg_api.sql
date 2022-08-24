@@ -119,9 +119,10 @@ CREATE OR REPLACE TABLE UsersPaymentRequest
 (
     UserCode                binary(16)                       null comment '사용자 고유식별자',
     issuedAt                varchar(255)                 not null comment '처리 시기',
-    status                  varchar(255)                 not null comment '상태',
+    status                  varchar(255)                 not null comment '0:취소(회색), 1:승인(파랑), 2:실패(빨강), 3:오류(노랑)',
     impUid                  varchar(255)                     null comment '아임포트 식별번호',
     registerCode            varchar(255)                     null comment '카드 고유 식별번호',
+    orderType               varchar(255)                 not null comment '주문 타입 => 0:plan, 1: panel, 2: reward',
     orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid',
     orderName               varchar(255)                 not null comment '주문 이름=name',
     amount                  varchar(255)                 not null comment '주문 금액',
