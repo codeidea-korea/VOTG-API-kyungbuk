@@ -404,7 +404,7 @@ router.post('/onetimeBilling', async (req, res) => {
 
 router.post('/payBilling', async (req, res) => {
     try {
-        const { UserCode, cardNumber, orderType, orderName, price } = req.body
+        const { UserCode, cardNumber, merchantUid, orderType, orderName, price } = req.body
 
         const CardInfo = await DB.UsersPaymentCard.findOne({
             where: { UserCode: Buffer.from(UserCode, 'hex'), cardNumber: cardNumber },
@@ -428,14 +428,13 @@ router.post('/payBilling', async (req, res) => {
 
         const { access_token } = getToken.data.response // 인증 토큰
         console.log('access_token', access_token)
-
         const paymentResult = await axios({
             url: `https://api.iamport.kr/subscribe/payments/again`,
             method: 'post',
             headers: { Authorization: access_token }, // 인증 토큰을 Authorization header에 추가
             data: {
                 customer_uid: CardInfo.registerCode,
-                merchant_uid: `${orderType}-${UserCode}-${Date.now()}`, // 새로 생성한 결제(재결제)용 주문 번호
+                merchant_uid: merchantUid, // 새로 생성한 결제(재결제)용 주문 번호
                 amount: price,
                 name: orderName,
             },
