@@ -158,4 +158,36 @@ router.post('/passwdCheck', async (req, res) => {
     }
 })
 
+router.post('/callbackResult', async (req, res) => {
+    try {
+        const { UserCode, billingPasswd } = req.body
+        const Users = await DB.UsersPaymentPasswd.findOne({
+            where: { UserCode: Buffer.from(UserCode, 'hex') },
+        })
+        const result = await bcrypt.compare(billingPasswd, Users.billingPasswd)
+        if (result) {
+            return res.status(200).json({
+                isSuccess: true,
+                code: 200,
+                msg: 'check complete',
+                payload: result,
+            })
+        } else {
+            return res.status(200).json({
+                isSuccess: false,
+                code: 401,
+                msg: 'check complete',
+                payload: result,
+            })
+        }
+    } catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router

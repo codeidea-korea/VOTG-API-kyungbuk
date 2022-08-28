@@ -81,6 +81,21 @@ CREATE OR REPLACE TABLE UsersSyncSNS
     constraint fk_sync_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+
+DROP TABLE UsersUploadLogs;
+CREATE OR REPLACE TABLE UsersUploadLogs
+(
+    UserCode    binary(16)                                  null comment '사용자 고유식별자',
+	fileCode    varchar(255)                            not null comment '파일 업로드 고유넘버',
+    fileName    varchar(255)                                null comment '파일 이름',
+    filePath    varchar(255)                                null comment '저장 경로',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, fileCode),
+    constraint fk_upload_logs_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
 DROP TABLE UsersPaymentCard;
 CREATE OR REPLACE TABLE UsersPaymentCard
 (

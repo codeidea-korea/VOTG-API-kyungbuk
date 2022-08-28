@@ -35,6 +35,7 @@ const RouterApi = require('./routes/api')
 const RouterAuth = require('./routes/auth')
 const RouterImp = require('./routes/imp')
 const RouterPayment = require('./routes/payment')
+const RouterStorage = require('./routes/storage')
 
 /* Mode & Debug Url Config */
 const prodChecker = process.env.NODE_ENV.trim().toLowerCase() === 'production'
@@ -64,17 +65,6 @@ debug.request(`FRONT_URL: ${process.env.FRONT_URL}`)
 const app = express()
 app.set('PORT', process.env.PORT || 7700)
 
-/* View Engine */
-/*/ ESJ
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'ejs')
-/**/
-//*/ Default Http
-app.use(express.static(path.join(__dirname, 'public')))
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true })) // true = using 'qs' module from npm
-
 /* Middleware Setting*/
 if (prodChecker) {
     app.enable('trust proxy')
@@ -95,6 +85,18 @@ if (prodChecker) {
     //     next()
     // })
 }
+
+/* View Engine */
+/*/ ESJ
+app.set('views', path.join(__dirname, 'views'))
+app.set('view engine', 'ejs')
+/**/
+//*/ Default Http
+app.use(express.static(path.join(__dirname, 'public')))
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads/')))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true })) // true = using 'qs' module from npm
+
 /* Cookie && Session */
 app.use(cookieParser(process.env.COOKIE_SECRET))
 const sessionOption = {
@@ -123,6 +125,7 @@ app.use('/api', RouterApi)
 app.use('/auth', RouterAuth)
 app.use('/imp', RouterImp)
 app.use('/payment', RouterPayment)
+app.use('/storage', RouterStorage)
 
 /* Url Router End-point Setting */
 app.get('*', (req, res, next) => {

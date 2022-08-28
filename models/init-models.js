@@ -9,6 +9,7 @@ var _UsersPaymentCard = require("./UsersPaymentCard");
 var _UsersPaymentPasswd = require("./UsersPaymentPasswd");
 var _UsersPaymentRequest = require("./UsersPaymentRequest");
 var _UsersSyncSNS = require("./UsersSyncSNS");
+var _UsersUploadLogs = require("./UsersUploadLogs");
 
 function initModels(sequelize) {
   var Organizations = _Organizations(sequelize, DataTypes);
@@ -21,6 +22,7 @@ function initModels(sequelize) {
   var UsersPaymentPasswd = _UsersPaymentPasswd(sequelize, DataTypes);
   var UsersPaymentRequest = _UsersPaymentRequest(sequelize, DataTypes);
   var UsersSyncSNS = _UsersSyncSNS(sequelize, DataTypes);
+  var UsersUploadLogs = _UsersUploadLogs(sequelize, DataTypes);
 
   Organizations.belongsToMany(Users, { as: 'UserCode_Users', through: OrganizationsMembers, foreignKey: "OrgCode", otherKey: "UserCode" });
   Services.belongsToMany(Users, { as: 'UserCode_Users_ServicesCustomers', through: ServicesCustomers, foreignKey: "ServiceCode", otherKey: "UserCode" });
@@ -48,6 +50,8 @@ function initModels(sequelize) {
   Users.hasMany(UsersPaymentRequest, { as: "UsersPaymentRequests", foreignKey: "UserCode"});
   UsersSyncSNS.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersSyncSNS, { as: "UsersSyncSNs", foreignKey: "UserCode"});
+  UsersUploadLogs.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasMany(UsersUploadLogs, { as: "UsersUploadLogs", foreignKey: "UserCode"});
 
   return {
     Organizations,
@@ -60,6 +64,7 @@ function initModels(sequelize) {
     UsersPaymentPasswd,
     UsersPaymentRequest,
     UsersSyncSNS,
+    UsersUploadLogs,
   };
 }
 module.exports = initModels;

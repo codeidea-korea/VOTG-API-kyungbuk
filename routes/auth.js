@@ -364,40 +364,35 @@ router.get('/user/phone', async (req, res, next) => {
 router.post('/sendCodeTW', async (req, res) => {
     try {
         const { phoneNumber } = req.body
-        if (phoneNumber == undefined) {
-            return res.status(402).json({
-                isSuccess: false,
-                code: 402,
-                msg: 'Input Empty',
-                payload: null,
-            })
-        }
+        Cache.del(phoneNumber)
+        const verifyCode = Math.floor(Math.random() * (999999 - 100000)) + 100000
+        Cache.put(phoneNumber, verifyCode.toString())
 
         // 계정 확보되면 문자 발송 코드들 넣을것
         const interPhoneNo = `+82${phoneNumber.substr(1)}`
-        const veriCode = Math.random(0.9, 1).toString().substr(2, 6)
 
         twilio.messages
             .create({
                 messagingServiceSid,
                 from: fromNumber,
                 to: `${interPhoneNo}`,
-                body: `[ASH] 인증번호\n[${veriCode}]`,
+                body: `인증번호\n[${verifyCode}]`,
             })
             .then(async (message) => {
-                res.status(200).json({
+                debug.axios('aRes', message)
+                return res.status(200).json({
                     isSuccess: true,
                     code: 200,
-                    msg: 'ok',
+                    msg: '본인인증 문자 발송 성공',
                     payload: message,
                 })
             })
             .catch((error) => {
-                console.error(error)
-                return res.status(403).json({
+                debug.fail('catch', error.message)
+                return res.status(402).json({
                     isSuccess: false,
-                    code: 403,
-                    msg: 'Forbidden',
+                    code: 402,
+                    msg: '본인인증 문자 발송 오류',
                     payload: error,
                 })
             })
@@ -435,7 +430,7 @@ router.post('/sendCodeSENS', async (req, res) => {
                 contentType: 'COMM',
                 countryCode: '82',
                 from: NCP_fromNumber,
-                content: `[ASH] 인증번호\n[${verifyCode}]를 입력해주세요.`,
+                content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
                 messages: [
                     {
                         to: `${phoneNumber}`,
