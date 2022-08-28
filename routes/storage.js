@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
 })
 
 router.post('/upload', upload.single('file'), async (req, res) => {
-    console.log(req)
+    // console.log(req)
     try {
         const { destination, encoding, fieldname, filename, mimetype, originalname, path } =
             req.file
