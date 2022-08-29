@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const cors = require('cors')
 const path = require('path')
 const fs = require('fs')
 const multer = require('multer')
@@ -38,7 +39,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', cors(), upload.single('file'), async (req, res) => {
     // console.log(req)
     try {
         const { destination, encoding, fieldname, filename, mimetype, originalname, path } =
