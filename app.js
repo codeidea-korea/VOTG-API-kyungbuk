@@ -75,15 +75,15 @@ if (prodChecker) {
     app.use(morgan('dev'))
     app.use(
         cors({
-            origin: [process.env.DEV_FRONT_URL, process.env.DEV_API_URL],
+            origin: [process.env.FRONT_URL, process.env.API_URL],
             credentials: true,
         }),
     )
-    app.use((req, res, next) => {
-        res.header('Access-Control-Allow-Origin', '*')
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
-        next()
-    })
+    // app.use((req, res, next) => {
+    //     res.header('Access-Control-Allow-Origin', '*')
+    //     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+    //     next()
+    // })
 }
 
 /* View Engine */
