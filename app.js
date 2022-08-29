@@ -73,12 +73,12 @@ if (prodChecker) {
     app.use(hpp())
 } else {
     app.use(morgan('dev'))
-    // app.use(
-    //     cors({
-    //         origin: [process.env.DEV_FRONT_URL, process.env.DEV_API_URL],
-    //         credentials: true,
-    //     }),
-    // )
+    app.use(
+        cors({
+            origin: [process.env.DEV_FRONT_URL, process.env.DEV_API_URL],
+            credentials: true,
+        }),
+    )
     app.use((req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*')
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
