@@ -96,6 +96,20 @@ CREATE OR REPLACE TABLE UsersUploadLogs
     constraint fk_upload_logs_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+
+DROP TABLE UsersSurveyDocuments;
+CREATE OR REPLACE TABLE UsersSurveyDocuments
+(
+    UserCode    binary(16)                                  null comment '사용자 고유식별자',
+	fileCode    varchar(255)                            not null comment '파일 업로드 고유넘버',
+    survey      JSON                                    not null comment '변경된 설문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, fileCode),
+    constraint fk_survey_document_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
 DROP TABLE UsersPaymentCard;
 CREATE OR REPLACE TABLE UsersPaymentCard
 (

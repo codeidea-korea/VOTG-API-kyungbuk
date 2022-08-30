@@ -72,4 +72,63 @@ router.post('/upload', cors(), upload.single('file'), async (req, res) => {
     }
 })
 
+router.post('/survey/distribute', async (req, res) => {
+    // console.log(req)
+    try {
+        const { UserCode, fileCode, surveyJson } = req.body
+        const createSurveyDocuments = await DB.UsersSurveyDocuments.create({
+            UserCode: Buffer.from(UserCode, 'hex'),
+            fileCode: fileCode,
+            survey: surveyJson.toString(),
+        })
+        console.log('UsersSurveyDocuments', createSurveyDocuments)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Dstribute Success',
+            payload: {
+                fileCode,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/survey/answer', async (req, res) => {
+    // console.log(req)
+    try {
+        var fileCode = req.query.fileCode
+        const exSurvey = await DB.UsersSurveyDocuments.findAll({
+            where: {
+                fileCode: fileCode,
+            },
+            attributes: ['survey'],
+        })
+        console.log('UsersSurveyDocument', exSurvey)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Dstribute Success',
+            payload: {
+                ...exSurvey,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router
