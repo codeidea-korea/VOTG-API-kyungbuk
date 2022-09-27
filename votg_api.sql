@@ -7,6 +7,33 @@ SELECT UNHEX(REPLACE(UUID(),'-',''));
 SELECT LENGTH(UNHEX(REPLACE(UUID(),'-','')));
 # SELECT SYS_GUID();
 
+#Check All DB Size
+SELECT table_schema "Database Name",
+SUM(data_length + index_length) / 1024 / 1024 "Size(MB)"
+FROM information_schema.TABLES
+GROUP BY table_schema;
+
+#Check Tables Size : GB
+SELECT
+concat(table_schema,'.',table_name),
+concat(round(data_length/(1024*1024*1024),2),'G') DATA,
+concat(round(index_length/(1024*1024*1024),2),'G') idx,
+concat(round((data_length+index_length)/(1024*1024*1024),2),'G') total_size,
+round(index_length/data_length,2) idxfrac
+FROM information_schema.TABLES
+WHERE table_rows is not null;
+
+#Check Tables Size : GB
+SELECT
+concat(table_schema,'.',table_name),
+concat(round(data_length/(1024*1024),2),'M') DATA,
+concat(round(index_length/(1024*1024),2),'M') idx,
+concat(round((data_length+index_length)/(1024*1024),2),'M') total_size,
+round(index_length/data_length,2) idxfrac
+FROM information_schema.TABLES
+WHERE table_rows is not null;
+
+
 SHOW FULL COLUMNS FROM votg_api_dev.Users;
 SHOW FULL COLUMNS FROM votg_api_dev.Organizations;
 ALTER TABLE votg_api_dev.Users CONVERT TO CHARACTER SET utf8mb3 collate null;
@@ -108,6 +135,32 @@ CREATE OR REPLACE TABLE UsersSurveyDocuments
     deletedAt   timestamp                                   null comment '삭제일',
     PRIMARY KEY (UserCode, fileCode),
     constraint fk_survey_document_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
+DROP TABLE UsersSurveyCustomLayouts;
+CREATE OR REPLACE TABLE UsersSurveyCustomLayouts
+(
+    UserCode    binary(16)                                  null comment '사용자 고유식별자',
+	fileCode    varchar(255)                            not null comment '파일 업로드 고유넘버',
+    survey      JSON                                    not null comment '변경된 설문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, fileCode),
+    constraint fk_survey_custom_layout_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
+
+DROP TABLE SurveyAnswers;
+CREATE OR REPLACE TABLE SurveyAnswers
+(
+    identifyCode    binary(16)                                  null comment '응답자 고유식별자',
+	fileCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
+    answer      JSON                                    not null comment '변경된 설문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (IdentifyCode, fileCode)
 ) charset = utf8mb3;
 
 DROP TABLE UsersPaymentCard;

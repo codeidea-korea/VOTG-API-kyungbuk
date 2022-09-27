@@ -190,4 +190,24 @@ router.post('/callbackResult', async (req, res) => {
     }
 })
 
+router.get('/checkout', async (req, res) => {
+    try {
+        debug.axios('checkout', req.query)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'return TEST',
+            payload: req.query,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router
