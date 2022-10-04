@@ -150,6 +150,23 @@ CREATE OR REPLACE TABLE UsersSurveyCustomLayouts
     constraint fk_survey_custom_layout_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+DROP TABLE UsersSurveyOnlineLayouts;
+CREATE OR REPLACE TABLE UsersSurveyOnlineLayouts
+(
+    UserCode    binary(16)                                  null comment '사용자 고유식별자',
+	surveyCode    varchar(255)                            not null comment '서베이 생성 고유넘버',
+    survey      JSON                                    not null comment '설문 데이터',
+    sendType    int         default 0                   not null comment '0:MMS, 1:카카오, 2:메일, 3:URL',
+    sendContact JSON                                    not null comment '응답자 발송 정보',
+    sendURL     varchar(255)                            not null comment '파일 배포 고유 URL',
+    thumbnail   varchar(255)                                null comment '파일 썸내일',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, surveyCode),
+    constraint fk_survey_online_layout_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
 
 DROP TABLE SurveyAnswers;
 CREATE OR REPLACE TABLE SurveyAnswers
@@ -162,6 +179,20 @@ CREATE OR REPLACE TABLE SurveyAnswers
     deletedAt   timestamp                                   null comment '삭제일',
     PRIMARY KEY (IdentifyCode, fileCode)
 ) charset = utf8mb3;
+
+
+DROP TABLE SurveyOnlineAnswers;
+CREATE OR REPLACE TABLE SurveyOnlineAnswers
+(
+    identifyCode    binary(16)                                  null comment '응답자 고유식별자',
+	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
+    answer      JSON                                    not null comment '변경된 설문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (IdentifyCode, surveyCode)
+) charset = utf8mb3;
+
 
 DROP TABLE UsersPaymentCard;
 CREATE OR REPLACE TABLE UsersPaymentCard

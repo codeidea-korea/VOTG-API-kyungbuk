@@ -4,12 +4,15 @@ var _OrganizationsMembers = require("./OrganizationsMembers");
 var _Services = require("./Services");
 var _ServicesCustomers = require("./ServicesCustomers");
 var _SurveyAnswers = require("./SurveyAnswers");
+var _SurveyOnlineAnswers = require("./SurveyOnlineAnswers");
 var _Users = require("./Users");
 var _UsersDetail = require("./UsersDetail");
 var _UsersPaymentCard = require("./UsersPaymentCard");
 var _UsersPaymentPasswd = require("./UsersPaymentPasswd");
 var _UsersPaymentRequest = require("./UsersPaymentRequest");
+var _UsersSurveyCustomLayouts = require("./UsersSurveyCustomLayouts");
 var _UsersSurveyDocuments = require("./UsersSurveyDocuments");
+var _UsersSurveyOnlineLayouts = require("./UsersSurveyOnlineLayouts");
 var _UsersSyncSNS = require("./UsersSyncSNS");
 var _UsersUploadLogs = require("./UsersUploadLogs");
 
@@ -19,12 +22,15 @@ function initModels(sequelize) {
   var Services = _Services(sequelize, DataTypes);
   var ServicesCustomers = _ServicesCustomers(sequelize, DataTypes);
   var SurveyAnswers = _SurveyAnswers(sequelize, DataTypes);
+  var SurveyOnlineAnswers = _SurveyOnlineAnswers(sequelize, DataTypes);
   var Users = _Users(sequelize, DataTypes);
   var UsersDetail = _UsersDetail(sequelize, DataTypes);
   var UsersPaymentCard = _UsersPaymentCard(sequelize, DataTypes);
   var UsersPaymentPasswd = _UsersPaymentPasswd(sequelize, DataTypes);
   var UsersPaymentRequest = _UsersPaymentRequest(sequelize, DataTypes);
+  var UsersSurveyCustomLayouts = _UsersSurveyCustomLayouts(sequelize, DataTypes);
   var UsersSurveyDocuments = _UsersSurveyDocuments(sequelize, DataTypes);
+  var UsersSurveyOnlineLayouts = _UsersSurveyOnlineLayouts(sequelize, DataTypes);
   var UsersSyncSNS = _UsersSyncSNS(sequelize, DataTypes);
   var UsersUploadLogs = _UsersUploadLogs(sequelize, DataTypes);
 
@@ -52,8 +58,12 @@ function initModels(sequelize) {
   Users.hasOne(UsersPaymentPasswd, { as: "UsersPaymentPasswd", foreignKey: "UserCode"});
   UsersPaymentRequest.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersPaymentRequest, { as: "UsersPaymentRequests", foreignKey: "UserCode"});
+  UsersSurveyCustomLayouts.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasMany(UsersSurveyCustomLayouts, { as: "UsersSurveyCustomLayouts", foreignKey: "UserCode"});
   UsersSurveyDocuments.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersSurveyDocuments, { as: "UsersSurveyDocuments", foreignKey: "UserCode"});
+  UsersSurveyOnlineLayouts.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasMany(UsersSurveyOnlineLayouts, { as: "UsersSurveyOnlineLayouts", foreignKey: "UserCode"});
   UsersSyncSNS.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersSyncSNS, { as: "UsersSyncSNs", foreignKey: "UserCode"});
   UsersUploadLogs.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
@@ -65,12 +75,15 @@ function initModels(sequelize) {
     Services,
     ServicesCustomers,
     SurveyAnswers,
+    SurveyOnlineAnswers,
     Users,
     UsersDetail,
     UsersPaymentCard,
     UsersPaymentPasswd,
     UsersPaymentRequest,
+    UsersSurveyCustomLayouts,
     UsersSurveyDocuments,
+    UsersSurveyOnlineLayouts,
     UsersSyncSNS,
     UsersUploadLogs,
   };
