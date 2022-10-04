@@ -17,6 +17,12 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       comment: "서베이 생성 고유넘버"
     },
+    status: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "0:생성, 1:배포됨, 2:중단, 3:완료, 4:삭제"
+    },
     survey: {
       type: DataTypes.TEXT,
       allowNull: false,

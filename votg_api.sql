@@ -155,6 +155,7 @@ CREATE OR REPLACE TABLE UsersSurveyOnlineLayouts
 (
     UserCode    binary(16)                                  null comment '사용자 고유식별자',
 	surveyCode    varchar(255)                            not null comment '서베이 생성 고유넘버',
+	status      int         default 0                   not null comment '0:생성, 1:배포됨, 2:중단, 3:완료, 4:삭제',
     survey      JSON                                    not null comment '설문 데이터',
     sendType    int         default 0                   not null comment '0:MMS, 1:카카오, 2:메일, 3:URL',
     sendContact JSON                                    not null comment '응답자 발송 정보',
