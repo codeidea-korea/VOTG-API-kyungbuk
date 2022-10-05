@@ -145,16 +145,14 @@ router.get('/survey/list', async (req, res) => {
             where: {
                 UserCode: Buffer.from(UserCode, 'hex'),
             },
-            // attributes: ['survey'],
+            attributes: ['surveyCode', 'status', 'survey', 'sendType', 'createdAt'],
         })
-        console.log('UsersSurveyDocument', exSurvey)
+        console.log('UsersSurveyOnlineLayouts', exSurvey)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
             msg: 'Survey List Success',
-            payload: {
-                ...exSurvey,
-            },
+            payload: exSurvey,
         })
     } catch (error) {
         console.error(error)

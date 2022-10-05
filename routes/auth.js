@@ -432,7 +432,7 @@ router.post('/sendCodeSENS', async (req, res) => {
                 from: NCP_fromNumber,
                 // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
 
-                content: `[뷰즈온더고]\n설문조사 바로가기 https://viewsonthego.com/`,
+                content: `[설문조사 클릭]\nhttps://url.kr/2ka4fe`,
                 messages: [
                     {
                         to: `${phoneNumber}`,
