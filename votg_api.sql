@@ -141,8 +141,14 @@ DROP TABLE UsersSurveyCustomLayouts;
 CREATE OR REPLACE TABLE UsersSurveyCustomLayouts
 (
     UserCode    binary(16)                                  null comment '사용자 고유식별자',
+	surveyCode    varchar(255)                            not null comment '서베이 생성 고유넘버',
 	fileCode    varchar(255)                            not null comment '파일 업로드 고유넘버',
+	status      int         default 0                   not null comment '0:생성, 1:배포됨, 2:중단, 3:완료, 4:삭제',
     survey      JSON                                    not null comment '변경된 설문 데이터',
+    sendType    int         default 0                   not null comment '0:MMS, 1:카카오, 2:메일, 3:URL',
+    sendContact JSON                                    not null comment '응답자 발송 정보',
+    sendURL     varchar(255)                            not null comment '파일 배포 고유 URL',
+    thumbnail   varchar(255)                                null comment '파일 썸내일',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',

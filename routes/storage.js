@@ -75,13 +75,27 @@ router.post('/upload', cors(), upload.single('file'), async (req, res) => {
 router.post('/survey/distribute', async (req, res) => {
     // console.log(req)
     try {
-        const { UserCode, fileCode, surveyJson } = req.body
-        const createSurveyDocuments = await DB.UsersSurveyDocuments.create({
+        const {
+            UserCode,
+            fileCode,
+            surveyCode,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+        } = req.body
+        const createCustomSurvey = await DB.UsersSurveyCustomLayouts.create({
             UserCode: Buffer.from(UserCode, 'hex'),
+            surveyCode: surveyCode,
             fileCode: fileCode,
             survey: surveyJson.toString(),
+            sendType: sendType,
+            sendContact: sendContact.toString(),
+            sendURL: sendURL,
+            thumbnail: thumbnail,
         })
-        console.log('UsersSurveyDocuments', createSurveyDocuments)
+        console.log('UsersSurveyCustomLayouts', createCustomSurvey)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
@@ -138,10 +152,10 @@ router.post('/survey/distribute/change', async (req, res) => {
 router.get('/survey/answer', async (req, res) => {
     // console.log(req)
     try {
-        var fileCode = req.query.fileCode
-        const exSurvey = await DB.UsersSurveyDocuments.findAll({
+        var surveyCode = req.query.surveyCode
+        const exSurvey = await DB.UsersSurveyCustomLayouts.findAll({
             where: {
-                fileCode: fileCode,
+                surveyCode: surveyCode,
             },
             attributes: ['survey'],
         })
@@ -150,6 +164,36 @@ router.get('/survey/answer', async (req, res) => {
             isSuccess: true,
             code: 200,
             msg: 'Survey Dstribute Success',
+            payload: {
+                ...exSurvey,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/survey/list', async (req, res) => {
+    // console.log(req)
+    try {
+        const UserCode = req.query.UserCode
+        const exSurvey = await DB.UsersSurveyCustomLayouts.findAll({
+            where: {
+                UserCode: Buffer.from(UserCode, 'hex'),
+            },
+            // attributes: ['survey'],
+        })
+        console.log('UsersSurveyDocument', exSurvey)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey List Success',
             payload: {
                 ...exSurvey,
             },
