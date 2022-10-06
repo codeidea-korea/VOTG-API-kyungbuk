@@ -17,16 +17,21 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       comment: "서베이 생성 고유넘버"
     },
-    status: {
-      type: DataTypes.INTEGER,
+    surveyType: {
+      type: DataTypes.STRING(255),
       allowNull: false,
-      defaultValue: 0,
-      comment: "0:생성, 1:배포됨, 2:중단, 3:완료, 4:삭제"
+      comment: "서베이 타입 0: 일반 설문, 1: 변환 설문, "
     },
     survey: {
       type: DataTypes.TEXT,
       allowNull: false,
       comment: "설문 데이터"
+    },
+    status: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "0:생성, 1:배포됨, 2:중단, 3:완료, 4:삭제"
     },
     sendType: {
       type: DataTypes.INTEGER,
@@ -42,12 +47,17 @@ module.exports = function(sequelize, DataTypes) {
     sendURL: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      comment: "파일 배포 고유 URL"
+      comment: "설문 배포 고유 URL"
     },
     thumbnail: {
       type: DataTypes.STRING(255),
       allowNull: true,
-      comment: "파일 썸내일"
+      comment: "설문 썸내일"
+    },
+    fileCode: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: "파일 업로드 고유넘버 -> 설문타입 1 = 변환 설문 시 필수"
     }
   }, {
     sequelize,
