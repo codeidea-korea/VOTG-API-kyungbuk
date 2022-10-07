@@ -192,6 +192,36 @@ router.post('/survey/distribute/change', async (req, res) => {
     }
 })
 
+router.get('/survey/loaded', async (req, res) => {
+    // console.log(req)
+    try {
+        var surveyCode = req.query.surveyCode
+        const exSurvey = await DB.UsersSurveyOnlineLayouts.findAll({
+            where: {
+                surveyCode: surveyCode,
+            },
+            attributes: ['survey'],
+        })
+        console.log('UsersSurveyDocument', exSurvey)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Loaded Success',
+            payload: {
+                ...exSurvey,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 router.get('/survey/answer', async (req, res) => {
     // console.log(req)
     try {
