@@ -161,24 +161,87 @@ router.post('/survey/distribute', async (req, res) => {
 router.post('/survey/distribute/change', async (req, res) => {
     // console.log(req)
     try {
-        const { UserCode, fileCode, surveyJson } = req.body
-        const deleteSurveyDocuments = await DB.UsersSurveyDocuments.destroy({
-            where: { fileCode: fileCode },
-            force: true,
+        const {
+            UserCode,
+            surveyCode,
+            surveyType,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+            fileCode,
+        } = req.body
+
+        console.log('UsersSurveyOnlineLayouts - Update', surveyCode)
+        const updateSurveyLoineLayouts = await DB.UsersSurveyOnlineLayouts.update(
+            {
+                status: 1,
+                surveyType: surveyType,
+                survey: surveyJson.toString(),
+                sendType: sendType,
+                sendContact: sendContact.toString(),
+                sendURL: sendURL,
+                thumbnail: thumbnail,
+                fileCode: fileCode,
+            },
+            { where: { surveyCode: surveyCode } },
+        )
+        //SENS
+        const contactJson = JSON.parse(sendContact)
+        console.log('contactJson', contactJson)
+        contactJson.phoneNumbers.map((phone, pIndex) => {
+            console.log('phoneNumbers', phone)
+            axios({
+                method: method,
+                json: true,
+                url: url,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-ncp-iam-access-key': NCP_accessKey,
+                    'x-ncp-apigw-timestamp': date,
+                    'x-ncp-apigw-signature-v2': signature,
+                },
+                data: {
+                    type: 'SMS',
+                    contentType: 'COMM',
+                    countryCode: '82',
+                    from: NCP_fromNumber,
+                    // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
+                    content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift/`,
+                    messages: [
+                        {
+                            to: `${phone}`,
+                        },
+                    ],
+                },
+            })
+                .then(async (aRes) => {
+                    debug.axios('aRes', aRes.data)
+                    // return res.status(200).json({
+                    //     isSuccess: true,
+                    //     code: 200,
+                    //     msg: '본인인증 문자 발송 성공',
+                    //     payload: aRes.data,
+                    // })
+                })
+                .catch((error) => {
+                    debug.fail('catch', error.message)
+                    // return res.status(402).json({
+                    //     isSuccess: false,
+                    //     code: 402,
+                    //     msg: '본인인증 문자 발송 오류',
+                    //     payload: error,
+                    // })
+                })
         })
-        console.log('UsersSurveyDocuments - Delete', deleteSurveyDocuments)
-        const createSurveyDocuments = await DB.UsersSurveyDocuments.create({
-            UserCode: Buffer.from(UserCode, 'hex'),
-            fileCode: fileCode,
-            survey: surveyJson.toString(),
-        })
-        console.log('UsersSurveyDocuments - Change', createSurveyDocuments)
+
         return res.status(200).json({
             isSuccess: true,
             code: 200,
-            msg: 'Survey Dstribute Success',
+            msg: 'Survey Change & Dstribute Success',
             payload: {
-                fileCode,
+                surveyCode,
             },
         })
     } catch (error) {
@@ -200,7 +263,7 @@ router.get('/survey/loaded', async (req, res) => {
             where: {
                 surveyCode: surveyCode,
             },
-            attributes: ['survey'],
+            attributes: ['survey', 'sendContact'],
         })
         console.log('UsersSurveyDocument', exSurvey)
         return res.status(200).json({
