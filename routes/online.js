@@ -327,7 +327,7 @@ router.get('/survey/list', async (req, res) => {
             attributes: ['surveyCode', 'status', 'survey', 'sendType', 'sendContact', 'createdAt'],
             order: [['createdAt', 'DESC']],
         })
-        console.log('UsersSurveyOnlineLayouts', exSurvey)
+        // console.log('UsersSurveyOnlineLayouts', exSurvey)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
@@ -348,10 +348,10 @@ router.get('/survey/list', async (req, res) => {
 router.post('/survey/answer', async (req, res) => {
     // console.log(req)
     try {
-        const { identifyCode, fileCode, answerJson } = req.body
-        const createSurveyDocuments = await DB.SurveyAnswers.create({
+        const { identifyCode, surveyCode, answerJson } = req.body
+        const createSurveyDocuments = await DB.SurveyOnlineAnswers.create({
             identifyCode: Buffer.from(identifyCode, 'hex'),
-            fileCode: fileCode,
+            surveyCode: surveyCode,
             answer: answerJson.toString(),
         })
         console.log('UsersSurveyDocuments', createSurveyDocuments)
@@ -360,8 +360,32 @@ router.post('/survey/answer', async (req, res) => {
             code: 200,
             msg: 'Survey Answer Complete',
             payload: {
-                fileCode,
+                surveyCode,
             },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/survey/answers', async (req, res) => {
+    // console.log(req)
+    try {
+        const exAnswer = await DB.SurveyOnlineAnswers.findAll({
+            attributes: ['identifyCode', 'surveyCode'],
+        })
+        console.log('SurveyOnlineAnswers', exAnswer)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Answers List',
+            payload: exAnswer,
         })
     } catch (error) {
         console.error(error)
@@ -377,18 +401,18 @@ router.post('/survey/answer', async (req, res) => {
 router.get('/survey/answers/result', async (req, res) => {
     // console.log(req)
     try {
-        var fileCode = req.query.fileCode
-        const exAnswer = await DB.SurveyAnswers.findAll({
+        var surveyCode = req.query.surveyCode
+        const exAnswer = await DB.SurveyOnlineAnswers.findAll({
             where: {
-                fileCode: fileCode,
+                surveyCode: surveyCode,
             },
             attributes: ['identifyCode', 'answer'],
         })
-        console.log('SurveyAnswers', exAnswer)
+        console.log('SurveyOnlineAnswers', exAnswer)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
-            msg: 'Survey Dstribute Success',
+            msg: 'Survey Answer Result',
             payload: exAnswer,
         })
     } catch (error) {
