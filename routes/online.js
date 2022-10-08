@@ -199,103 +199,105 @@ router.post('/survey/distribute', async (req, res) => {
         console.log('sendType', sendType)
         const contactJson = JSON.parse(sendContact)
         console.log('contactJson', contactJson)
-        contactJson.phoneNumbers.map((phone, pIndex) => {
-            console.log('phoneNumbers', phone)
+        if (contactJson.phoneNumbers !== undefined) {
+            contactJson.phoneNumbers.map((phone, pIndex) => {
+                console.log('phoneNumbers', phone)
 
-            if (sendType === 0) {
-                axios({
-                    method: method,
-                    json: true,
-                    url: url,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-ncp-iam-access-key': NCP_accessKey,
-                        'x-ncp-apigw-timestamp': date,
-                        'x-ncp-apigw-signature-v2': signature,
-                    },
-                    data: {
-                        type: 'SMS',
-                        contentType: 'COMM',
-                        countryCode: '82',
-                        from: NCP_fromNumber,
-                        // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
-                        content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift${sendURL}`,
-                        messages: [
-                            {
-                                to: `${phone}`,
-                            },
-                        ],
-                    },
-                })
-                    .then(async (aRes) => {
-                        debug.axios('aRes', aRes.data)
-                        // return res.status(200).json({
-                        //     isSuccess: true,
-                        //     code: 200,
-                        //     msg: '본인인증 문자 발송 성공',
-                        //     payload: aRes.data,
-                        // })
+                if (sendType === 0) {
+                    axios({
+                        method: method,
+                        json: true,
+                        url: url,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signature,
+                        },
+                        data: {
+                            type: 'SMS',
+                            contentType: 'COMM',
+                            countryCode: '82',
+                            from: NCP_fromNumber,
+                            // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
+                            content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift${sendURL}`,
+                            messages: [
+                                {
+                                    to: `${phone}`,
+                                },
+                            ],
+                        },
                     })
-                    .catch((error) => {
-                        debug.fail('catch', error)
-                        // return res.status(402).json({
-                        //     isSuccess: false,
-                        //     code: 402,
-                        //     msg: '본인인증 문자 발송 오류',
-                        //     payload: error,
-                        // })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                } else if (sendType === 1) {
+                    axios({
+                        method: method,
+                        json: true,
+                        url: urlKakao,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signatureKakao,
+                        },
+                        data: {
+                            plusFriendId: '@뷰즈온더고',
+                            templateCode: 'votgalim01',
+                            messages: [
+                                {
+                                    countryCode: '82',
+                                    to: `${phone}`,
+                                    content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
+                                    buttons: [
+                                        {
+                                            type: 'WL',
+                                            name: '설문조사 바로가기',
+                                            linkMobile: `https://survey.gift${sendURL}`,
+                                            linkPc: `https://survey.gift${sendURL}`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
                     })
-            } else if (sendType === 1) {
-                axios({
-                    method: method,
-                    json: true,
-                    url: urlKakao,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-ncp-iam-access-key': NCP_accessKey,
-                        'x-ncp-apigw-timestamp': date,
-                        'x-ncp-apigw-signature-v2': signatureKakao,
-                    },
-                    data: {
-                        plusFriendId: '@뷰즈온더고',
-                        templateCode: 'votgalim01',
-                        messages: [
-                            {
-                                countryCode: '82',
-                                to: `${phone}`,
-                                content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
-                                buttons: [
-                                    {
-                                        type: 'WL',
-                                        name: '설문조사 바로가기',
-                                        linkMobile: `https://survey.gift${sendURL}`,
-                                        linkPc: `https://survey.gift${sendURL}`,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                })
-                    .then(async (aRes) => {
-                        debug.axios('aRes', aRes.data)
-                        // return res.status(200).json({
-                        //     isSuccess: true,
-                        //     code: 200,
-                        //     msg: '본인인증 문자 발송 성공',
-                        //     payload: aRes.data,
-                        // })
-                    })
-                    .catch((error) => {
-                        debug.fail('catch', error)
-                        // return res.status(402).json({
-                        //     isSuccess: false,
-                        //     code: 402,
-                        //     msg: '본인인증 문자 발송 오류',
-                        //     payload: error,
-                        // })
-                    })
-            }
-        })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                }
+            })
+        }
 
         return res.status(200).json({
             isSuccess: true,
@@ -348,103 +350,105 @@ router.post('/survey/distribute/change', async (req, res) => {
         //SENS
         const contactJson = JSON.parse(sendContact)
         console.log('contactJson', contactJson)
-        contactJson.phoneNumbers.map((phone, pIndex) => {
-            console.log('phoneNumbers', phone)
+        if (contactJson.phoneNumbers !== undefined) {
+            contactJson.phoneNumbers.map((phone, pIndex) => {
+                console.log('phoneNumbers', phone)
 
-            if (sendType === 0) {
-                axios({
-                    method: method,
-                    json: true,
-                    url: url,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-ncp-iam-access-key': NCP_accessKey,
-                        'x-ncp-apigw-timestamp': date,
-                        'x-ncp-apigw-signature-v2': signature,
-                    },
-                    data: {
-                        type: 'SMS',
-                        contentType: 'COMM',
-                        countryCode: '82',
-                        from: NCP_fromNumber,
-                        // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
-                        content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift${sendURL}`,
-                        messages: [
-                            {
-                                to: `${phone}`,
-                            },
-                        ],
-                    },
-                })
-                    .then(async (aRes) => {
-                        debug.axios('aRes', aRes.data)
-                        // return res.status(200).json({
-                        //     isSuccess: true,
-                        //     code: 200,
-                        //     msg: '본인인증 문자 발송 성공',
-                        //     payload: aRes.data,
-                        // })
+                if (sendType === 0) {
+                    axios({
+                        method: method,
+                        json: true,
+                        url: url,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signature,
+                        },
+                        data: {
+                            type: 'SMS',
+                            contentType: 'COMM',
+                            countryCode: '82',
+                            from: NCP_fromNumber,
+                            // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
+                            content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift${sendURL}`,
+                            messages: [
+                                {
+                                    to: `${phone}`,
+                                },
+                            ],
+                        },
                     })
-                    .catch((error) => {
-                        debug.fail('catch', error.data)
-                        // return res.status(402).json({
-                        //     isSuccess: false,
-                        //     code: 402,
-                        //     msg: '본인인증 문자 발송 오류',
-                        //     payload: error,
-                        // })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.data)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                } else if (sendType === 1) {
+                    axios({
+                        method: method,
+                        json: true,
+                        url: urlKakao,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signatureKakao,
+                        },
+                        data: {
+                            plusFriendId: '@뷰즈온더고',
+                            templateCode: 'votgalim01',
+                            messages: [
+                                {
+                                    countryCode: '82',
+                                    to: `${phone}`,
+                                    content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
+                                    buttons: [
+                                        {
+                                            type: 'WL',
+                                            name: '설문조사 바로가기',
+                                            linkMobile: `https://survey.gift${sendURL}`,
+                                            linkPc: `https://survey.gift${sendURL}`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
                     })
-            } else if (sendType === 1) {
-                axios({
-                    method: method,
-                    json: true,
-                    url: urlKakao,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-ncp-iam-access-key': NCP_accessKey,
-                        'x-ncp-apigw-timestamp': date,
-                        'x-ncp-apigw-signature-v2': signatureKakao,
-                    },
-                    data: {
-                        plusFriendId: '@뷰즈온더고',
-                        templateCode: 'votgalim01',
-                        messages: [
-                            {
-                                countryCode: '82',
-                                to: `${phone}`,
-                                content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
-                                buttons: [
-                                    {
-                                        type: 'WL',
-                                        name: '설문조사 바로가기',
-                                        linkMobile: `https://survey.gift${sendURL}`,
-                                        linkPc: `https://survey.gift${sendURL}`,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                })
-                    .then(async (aRes) => {
-                        debug.axios('aRes', aRes.data)
-                        // return res.status(200).json({
-                        //     isSuccess: true,
-                        //     code: 200,
-                        //     msg: '본인인증 문자 발송 성공',
-                        //     payload: aRes.data,
-                        // })
-                    })
-                    .catch((error) => {
-                        debug.fail('catch', error.data)
-                        // return res.status(402).json({
-                        //     isSuccess: false,
-                        //     code: 402,
-                        //     msg: '본인인증 문자 발송 오류',
-                        //     payload: error,
-                        // })
-                    })
-            }
-        })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.data)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                }
+            })
+        }
 
         return res.status(200).json({
             isSuccess: true,
