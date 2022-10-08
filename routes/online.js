@@ -603,7 +603,6 @@ router.get('/survey/answers', async (req, res) => {
     } catch (error) {
         console.error(error)
         return res.status(400).json({
-            isSuccess: false,
             code: 400,
             msg: 'Bad Request',
             payload: error,
@@ -615,6 +614,22 @@ router.get('/survey/answers/result', async (req, res) => {
     // console.log(req)
     try {
         var surveyCode = req.query.surveyCode
+        const exSurvey = await DB.UsersSurveyOnlineLayouts.findOne({
+            where: {
+                surveyCode: surveyCode,
+            },
+            attributes: [
+                'surveyCode',
+                'surveyType',
+                'survey',
+                'status',
+                'sendType',
+                'sendURL',
+                'thumbnail',
+                'fileCode',
+                'createdAt',
+            ],
+        })
         const exAnswer = await DB.SurveyOnlineAnswers.findAll({
             where: {
                 surveyCode: surveyCode,
@@ -626,7 +641,7 @@ router.get('/survey/answers/result', async (req, res) => {
             isSuccess: true,
             code: 200,
             msg: 'Survey Answer Result',
-            payload: exAnswer,
+            payload: { selected: exSurvey, result: exAnswer },
         })
     } catch (error) {
         console.error(error)
