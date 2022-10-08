@@ -40,6 +40,7 @@ const twilio = require('twilio')(accountSid, authToken)
 const NCP_accessKey = process.env.NCP_ACCESS_KEY
 const NCP_secretKey = process.env.NCP_SECRET_KEY
 const NCP_serviceID = process.env.NCP_SENS_SMS_ID
+const NCP_serviceKAKAO = process.env.NCP_SENS_KAKAO_ID
 const NCP_fromNumber = process.env.NCP_SENS_SMS_FROM_NUMBER
 const date = Date.now().toString()
 const method = 'POST'
@@ -47,6 +48,8 @@ const space = ' '
 const newLine = '\n'
 const url = `https://sens.apigw.ntruss.com/sms/v2/services/${NCP_serviceID}/messages`
 const url2 = `/sms/v2/services/${NCP_serviceID}/messages`
+const urlKakao = `https://sens.apigw.ntruss.com/alimtalk/v2/services/${NCP_serviceKAKAO}/messages`
+const urlKakao2 = `/alimtalk/v2/services/${NCP_serviceKAKAO}/messages`
 const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
 hmac.update(method)
 hmac.update(space)
@@ -57,6 +60,17 @@ hmac.update(newLine)
 hmac.update(NCP_accessKey)
 const hash = hmac.finalize()
 const signature = hash.toString(CryptoJS.enc.Base64)
+
+const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+hmacKakao.update(method)
+hmacKakao.update(space)
+hmacKakao.update(urlKakao2)
+hmacKakao.update(newLine)
+hmacKakao.update(date)
+hmacKakao.update(newLine)
+hmacKakao.update(NCP_accessKey)
+const hashKakao = hmacKakao.finalize()
+const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
 
 /**
  * Routing Sample
@@ -403,6 +417,73 @@ router.post('/sendCodeTW', async (req, res) => {
             code: 400,
             msg: 'Bad Request',
             payload: error,
+        })
+    }
+})
+
+/* Message Verification : Send Code*/
+router.post('/sendCodeSENSKakao', async (req, res) => {
+    try {
+        const { phoneNumber } = req.body
+        // Cache.del(phoneNumber)
+        // const verifyCode = Math.floor(Math.random() * (999999 - 100000)) + 100000
+        // Cache.put(phoneNumber, verifyCode.toString())
+
+        axios({
+            method: method,
+            json: true,
+            url: urlKakao,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-ncp-iam-access-key': NCP_accessKey,
+                'x-ncp-apigw-timestamp': date,
+                'x-ncp-apigw-signature-v2': signatureKakao,
+            },
+            data: {
+                plusFriendId: '@뷰즈온더고',
+                templateCode: 'votgalim01',
+                messages: [
+                    {
+                        countryCode: '82',
+                        to: `${phoneNumber}`,
+                        content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
+                        buttons: [
+                            {
+                                type: 'WL',
+                                name: '설문조사 바로가기',
+                                linkMobile: `https://viewsonthego.com`,
+                                linkPc: `https://viewsonthego.com`,
+                            },
+                        ],
+                    },
+                ],
+            },
+        })
+            .then(async (aRes) => {
+                debug.axios('aRes', aRes.data)
+                return res.status(200).json({
+                    isSuccess: true,
+                    code: 200,
+                    msg: '본인인증 문자 발송 성공',
+                    payload: aRes.data,
+                })
+            })
+            .catch((error) => {
+                debug.fail('catch', error)
+                return res.status(402).json({
+                    isSuccess: false,
+                    code: 402,
+                    msg: '본인인증 문자 발송 오류',
+                    payload: error,
+                })
+            })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: null,
         })
     }
 })

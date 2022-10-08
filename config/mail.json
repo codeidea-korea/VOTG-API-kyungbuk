@@ -1,0 +1,34 @@
+{
+    "local": {
+        "user": "onthegoviews@gmail.com",
+        "pass": "",
+        "OAUTH_USER": "onthegoviews@gmail.com",
+        "OAUTH_CLIENT_ID": "200715629365-gbvsfq02sfmcrv4cj5q5mm7nsesgms1d.apps.googleusercontent.com",
+        "OAUTH_CLIENT_SECRET": "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",
+        "OAUTH_REFRESH_TOKEN": "1//04doM_FUbS_qSCgYIARAAGAQSNwF-L9IrWlrAM8RgSVA7HU-ZIPrQrANLvUO3XJZ8DAecwnGs-8wbbRnf4cXhfF0-v1bRdIT5REY"
+    },
+    "development": {
+        "user": "onthegoviews@gmail.com",
+        "pass": "",
+        "OAUTH_USER": "onthegoviews@gmail.com",
+        "OAUTH_CLIENT_ID": "200715629365-gbvsfq02sfmcrv4cj5q5mm7nsesgms1d.apps.googleusercontent.com",
+        "OAUTH_CLIENT_SECRET": "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",
+        "OAUTH_REFRESH_TOKEN": "1//04doM_FUbS_qSCgYIARAAGAQSNwF-L9IrWlrAM8RgSVA7HU-ZIPrQrANLvUO3XJZ8DAecwnGs-8wbbRnf4cXhfF0-v1bRdIT5REY"
+    },
+    "production": {
+        "user": "onthegoviews@gmail.com",
+        "pass": "",
+        "OAUTH_USER": "onthegoviews@gmail.com",
+        "OAUTH_CLIENT_ID": "200715629365-gbvsfq02sfmcrv4cj5q5mm7nsesgms1d.apps.googleusercontent.com",
+        "OAUTH_CLIENT_SECRET": "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",
+        "OAUTH_REFRESH_TOKEN": "1//04doM_FUbS_qSCgYIARAAGAQSNwF-L9IrWlrAM8RgSVA7HU-ZIPrQrANLvUO3XJZ8DAecwnGs-8wbbRnf4cXhfF0-v1bRdIT5REY"
+    },
+    "test": {
+        "user": "hapsody@gmail.com",
+        "pass": "",
+        "OAUTH_USER": "onthegoviews@gmail.com",
+        "OAUTH_CLIENT_ID": "200715629365-gbvsfq02sfmcrv4cj5q5mm7nsesgms1d.apps.googleusercontent.com",
+        "OAUTH_CLIENT_SECRET": "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",
+        "OAUTH_REFRESH_TOKEN": "1//04doM_FUbS_qSCgYIARAAGAQSNwF-L9IrWlrAM8RgSVA7HU-ZIPrQrANLvUO3XJZ8DAecwnGs-8wbbRnf4cXhfF0-v1bRdIT5REY"
+    }
+}

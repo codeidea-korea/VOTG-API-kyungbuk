@@ -5,6 +5,8 @@ const path = require('path')
 const fs = require('fs')
 const multer = require('multer')
 const axios = require('axios')
+const { isEmpty, isEqual } = require('lodash')
+const nodemailer = require('nodemailer')
 
 /* Auth */
 const passport = require('passport')
@@ -36,6 +38,15 @@ hmac.update(NCP_accessKey)
 const hash = hmac.finalize()
 const signature = hash.toString(CryptoJS.enc.Base64)
 
+const env = process.env.NODE_ENV || 'development'
+/* Mail */
+const mailConfig = (() => {
+    // return env === 'test'
+    //     ? require('../config/localDev/email.json')[env]
+    //     : require('../config/mail.json')[env]
+    return require('../config/mail.json')[env]
+})()
+
 /* Middle-ware */
 const { isNotLoggedIn, isLoggedIn } = require('./middlewares')
 
@@ -61,6 +72,86 @@ router.post('/', async (req, res) => {
         res.status(200).json({ code: code, name: name })
     } catch (error) {
         res.status(400).json({ result: '0', error: error })
+    }
+})
+
+router.post('/requestMail', async (req, res) => {
+    console.log('mailConfig', mailConfig)
+    try {
+        const { email } = req.body
+        if (isEmpty(email)) {
+            return res.status(402).json({
+                isSuccess: false,
+                code: 402,
+                msg: '이메일 발송 오류',
+                payload: res.data,
+            })
+        }
+
+        // Generate test SMTP service account from ethereal.email
+        // Only needed if you don't have a real mail account for testing
+        // const testAccount = await nodemailer.create();
+
+        // create reusable transporter object using the default SMTP transport
+
+        // const randNo = Math.random()
+        // const token = jwt.sign({ email, randNo }, jwtConfig.secret, {
+        //     expiresIn: 5 * 60 * 1000, // 5분
+        // })
+
+        // await models.EmailVeriCode.create({
+        //     email,
+        //     randId: randNo,
+        // })
+
+        // const transporter = nodemailer.createTransport({
+        //     service: 'gmail', // 메일 보내는 곳
+        //     port: 587,
+        //     host: 'smtp.gmlail.com',
+        //     secure: true,
+        //     requireTLS: true,
+        //     auth: {
+        //         // user: mailConfig.user, // 보내는 메일의 주소
+        //         // pass: mailConfig.pass, // 보내는 메일의 비밀번호
+        //         type: 'OAuth2',
+        //         user: mailConfig.OAUTH_USER,
+        //         clientId: mailConfig.OAUTH_CLIENT_ID,
+        //         clientSecret: mailConfig.OAUTH_CLIENT_SECRET,
+        //         refreshToken: mailConfig.OAUTH_REFRESH_TOKEN,
+        //     },
+        // })
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: 'jwlryk@gmail.com', pass: 'oijicyfplboynnmm' },
+            secure: true,
+        })
+
+        console.log('transporter', transporter)
+
+        await transporter.sendMail({
+            from: `lexinery@gmail.com`, // sender address
+            to: `${email}`, // list of receivers
+            subject: 'Locomotion email verification code', // Subject line
+            //   text: `https://407d-218-39-219-162.ngrok.io/auth/verify?token=${token}`, // plain text body
+            html: `<a href="https:${process.env.SURVEY_URL}">${process.env.SURVEY_URL}</a>`, // html body
+        })
+
+        // console.log('Message sent: %s', info.messageId);
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Dstribute Success',
+            payload: null,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
     }
 })
 
@@ -91,6 +182,7 @@ router.post('/survey/distribute', async (req, res) => {
             fileCode: fileCode,
         })
         //SENS
+        console.log('')
         const contactJson = JSON.parse(sendContact)
         console.log('contactJson', contactJson)
         contactJson.phoneNumbers.map((phone, pIndex) => {
@@ -129,7 +221,7 @@ router.post('/survey/distribute', async (req, res) => {
                     // })
                 })
                 .catch((error) => {
-                    debug.fail('catch', error.message)
+                    debug.fail('catch', error)
                     // return res.status(402).json({
                     //     isSuccess: false,
                     //     code: 402,
