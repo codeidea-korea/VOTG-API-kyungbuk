@@ -237,7 +237,7 @@ router.post('/survey/distribute', async (req, res) => {
                         // })
                     })
                     .catch((error) => {
-                        debug.fail('catch', error.data)
+                        debug.fail('catch', error)
                         // return res.status(402).json({
                         //     isSuccess: false,
                         //     code: 402,
@@ -286,7 +286,7 @@ router.post('/survey/distribute', async (req, res) => {
                         // })
                     })
                     .catch((error) => {
-                        debug.fail('catch', error.data)
+                        debug.fail('catch', error)
                         // return res.status(402).json({
                         //     isSuccess: false,
                         //     code: 402,
