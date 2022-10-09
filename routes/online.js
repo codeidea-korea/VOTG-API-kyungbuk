@@ -30,27 +30,27 @@ const url = `https://sens.apigw.ntruss.com/sms/v2/services/${NCP_serviceID}/mess
 const url2 = `/sms/v2/services/${NCP_serviceID}/messages`
 const urlKakao = `https://sens.apigw.ntruss.com/alimtalk/v2/services/${NCP_serviceKAKAO}/messages`
 const urlKakao2 = `/alimtalk/v2/services/${NCP_serviceKAKAO}/messages`
-const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
-hmac.update(method)
-hmac.update(space)
-hmac.update(url2)
-hmac.update(newLine)
-hmac.update(date)
-hmac.update(newLine)
-hmac.update(NCP_accessKey)
-const hash = hmac.finalize()
-const signature = hash.toString(CryptoJS.enc.Base64)
+// const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+// hmac.update(method)
+// hmac.update(space)
+// hmac.update(url2)
+// hmac.update(newLine)
+// hmac.update(date)
+// hmac.update(newLine)
+// hmac.update(NCP_accessKey)
+// const hash = hmac.finalize()
+// const signature = hash.toString(CryptoJS.enc.Base64)
 
-const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
-hmacKakao.update(method)
-hmacKakao.update(space)
-hmacKakao.update(urlKakao2)
-hmacKakao.update(newLine)
-hmacKakao.update(date)
-hmacKakao.update(newLine)
-hmacKakao.update(NCP_accessKey)
-const hashKakao = hmacKakao.finalize()
-const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
+// const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+// hmacKakao.update(method)
+// hmacKakao.update(space)
+// hmacKakao.update(urlKakao2)
+// hmacKakao.update(newLine)
+// hmacKakao.update(date)
+// hmacKakao.update(newLine)
+// hmacKakao.update(NCP_accessKey)
+// const hashKakao = hmacKakao.finalize()
+// const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
 
 const env = process.env.NODE_ENV || 'development'
 /* Mail */
@@ -238,12 +238,12 @@ router.post('/survey/distribute', async (req, res) => {
                             // })
                         })
                         .catch((error) => {
-                            debug.fail('catch', error)
-                            // return res.status(402).json({
+                            debug.fail('catch', error.response.data)
+                            // return res.status(error.response.status).json({
                             //     isSuccess: false,
-                            //     code: 402,
+                            //     code: error.response.status,
                             //     msg: '본인인증 문자 발송 오류',
-                            //     payload: error,
+                            //     payload: error.response.data,
                             // })
                         })
                 } else if (sendType === 1) {
@@ -355,6 +355,17 @@ router.post('/survey/distribute/change', async (req, res) => {
                 console.log('phoneNumbers', phone)
 
                 if (sendType === 0) {
+                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmac.update(method)
+                    hmac.update(space)
+                    hmac.update(url2)
+                    hmac.update(newLine)
+                    hmac.update(date)
+                    hmac.update(newLine)
+                    hmac.update(NCP_accessKey)
+                    const hash = hmac.finalize()
+                    const signature = hash.toString(CryptoJS.enc.Base64)
+
                     axios({
                         method: method,
                         json: true,
@@ -389,15 +400,26 @@ router.post('/survey/distribute/change', async (req, res) => {
                             // })
                         })
                         .catch((error) => {
-                            debug.fail('catch', error.data)
-                            // return res.status(402).json({
+                            debug.fail('catch', error.response.data)
+                            // return res.status(error.response.status).json({
                             //     isSuccess: false,
-                            //     code: 402,
+                            //     code: error.response.status,
                             //     msg: '본인인증 문자 발송 오류',
-                            //     payload: error,
+                            //     payload: error.response.data,
                             // })
                         })
                 } else if (sendType === 1) {
+                    const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmacKakao.update(method)
+                    hmacKakao.update(space)
+                    hmacKakao.update(urlKakao2)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(date)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(NCP_accessKey)
+                    const hashKakao = hmacKakao.finalize()
+                    const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
+
                     axios({
                         method: method,
                         json: true,
