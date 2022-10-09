@@ -204,6 +204,8 @@ router.post('/survey/distribute', async (req, res) => {
                 console.log('phoneNumbers', phone)
 
                 if (sendType === 0) {
+                    const date = Date.now().toString()
+                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
                     axios({
                         method: method,
                         json: true,
@@ -247,6 +249,8 @@ router.post('/survey/distribute', async (req, res) => {
                             // })
                         })
                 } else if (sendType === 1) {
+                    const date = Date.now().toString()
+                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
                     axios({
                         method: method,
                         json: true,
