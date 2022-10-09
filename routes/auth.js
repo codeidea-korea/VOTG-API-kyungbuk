@@ -42,7 +42,6 @@ const NCP_secretKey = process.env.NCP_SECRET_KEY
 const NCP_serviceID = process.env.NCP_SENS_SMS_ID
 const NCP_serviceKAKAO = process.env.NCP_SENS_KAKAO_ID
 const NCP_fromNumber = process.env.NCP_SENS_SMS_FROM_NUMBER
-const date = Date.now().toString()
 const method = 'POST'
 const space = ' '
 const newLine = '\n'
@@ -403,6 +402,7 @@ router.post('/sendCodeTW', async (req, res) => {
 /* Message Verification : Send Code*/
 router.post('/sendCodeSENSKakao', async (req, res) => {
     try {
+        const date = Date.now().toString()
         const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
         hmacKakao.update(method)
         hmacKakao.update(space)
@@ -481,6 +481,7 @@ router.post('/sendCodeSENSKakao', async (req, res) => {
 /* Message Verification : Send Code*/
 router.post('/sendCodeSENS', async (req, res) => {
     try {
+        const date = Date.now().toString()
         const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
         hmac.update(method)
         hmac.update(space)
