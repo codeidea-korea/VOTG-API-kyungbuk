@@ -90,7 +90,7 @@ router.post('/', async (req, res) => {
 })
 
 router.post('/requestMail', async (req, res) => {
-    console.log('mailConfig', mailConfig)
+    // console.log('mailConfig', mailConfig)
     try {
         const { email } = req.body
         if (isEmpty(email)) {
@@ -140,7 +140,7 @@ router.post('/requestMail', async (req, res) => {
             secure: true,
         })
 
-        console.log('transporter', transporter)
+        // console.log('transporter', transporter)
 
         await transporter.sendMail({
             from: `lexinery@gmail.com`, // sender address
@@ -196,12 +196,12 @@ router.post('/survey/distribute', async (req, res) => {
             fileCode: fileCode,
         })
         //SENS
-        console.log('sendType', sendType)
+        // console.log('sendType', sendType)
         const contactJson = JSON.parse(sendContact)
-        console.log('contactJson', contactJson)
+        // console.log('contactJson', contactJson)
         if (contactJson.phoneNumbers !== undefined) {
             contactJson.phoneNumbers.map((phone, pIndex) => {
-                console.log('phoneNumbers', phone)
+                // console.log('phoneNumbers', phone)
 
                 if (sendType === 0) {
                     const date = Date.now().toString()
@@ -357,7 +357,7 @@ router.post('/survey/distribute/change', async (req, res) => {
             fileCode,
         } = req.body
 
-        console.log('UsersSurveyOnlineLayouts - Update', surveyCode)
+        // console.log('UsersSurveyOnlineLayouts - Update', surveyCode)
         const updateSurveyLoineLayouts = await DB.UsersSurveyOnlineLayouts.update(
             {
                 status: 1,
@@ -373,10 +373,10 @@ router.post('/survey/distribute/change', async (req, res) => {
         )
         //SENS
         const contactJson = JSON.parse(sendContact)
-        console.log('contactJson', contactJson)
+        // console.log('contactJson', contactJson)
         if (contactJson.phoneNumbers !== undefined) {
             contactJson.phoneNumbers.map((phone, pIndex) => {
-                console.log('phoneNumbers', phone)
+                // console.log('phoneNumbers', phone)
 
                 if (sendType === 0) {
                     const date = Date.now().toString()
@@ -528,7 +528,7 @@ router.get('/survey/loaded', async (req, res) => {
             },
             attributes: ['survey', 'sendContact'],
         })
-        console.log('UsersSurveyDocument', exSurvey)
+        // console.log('UsersSurveyDocument', exSurvey)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
@@ -558,7 +558,7 @@ router.get('/survey/answer', async (req, res) => {
             },
             attributes: ['survey'],
         })
-        console.log('UsersSurveyDocument', exSurvey)
+        // console.log('UsersSurveyDocument', exSurvey)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
@@ -616,7 +616,7 @@ router.post('/survey/answer', async (req, res) => {
             surveyCode: surveyCode,
             answer: answerJson.toString(),
         })
-        console.log('UsersSurveyDocuments', createSurveyDocuments)
+        // console.log('UsersSurveyDocuments', createSurveyDocuments)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
@@ -642,7 +642,7 @@ router.get('/survey/answers', async (req, res) => {
         const exAnswer = await DB.SurveyOnlineAnswers.findAll({
             attributes: ['identifyCode', 'surveyCode'],
         })
-        console.log('SurveyOnlineAnswers', exAnswer)
+        // console.log('SurveyOnlineAnswers', exAnswer)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
@@ -686,7 +686,7 @@ router.get('/survey/answers/result', async (req, res) => {
             attributes: ['identifyCode', 'answer'],
             order: [['createdAt', 'ASC']],
         })
-        console.log('SurveyOnlineAnswers', exAnswer)
+        // console.log('SurveyOnlineAnswers', exAnswer)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
