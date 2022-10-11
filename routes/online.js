@@ -388,6 +388,7 @@ router.post('/survey/distribute/change', async (req, res) => {
                             from: NCP_fromNumber,
                             // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
                             content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift${sendURL}`,
+                            // content: `[뷰즈온더고]\n테스터 참여하기\n접속링크:https://viewsonthego.com/auth/login\n아이디:tester@votg.com\n비밀번호:tester00!\n\n설문조사 응답바로가기\nhttps://survey.gift${sendURL}`,
                             messages: [
                                 {
                                     to: `${phone}`,
