@@ -206,6 +206,16 @@ router.post('/survey/distribute', async (req, res) => {
                 if (sendType === 0) {
                     const date = Date.now().toString()
                     const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmac.update(method)
+                    hmac.update(space)
+                    hmac.update(url2)
+                    hmac.update(newLine)
+                    hmac.update(date)
+                    hmac.update(newLine)
+                    hmac.update(NCP_accessKey)
+                    const hash = hmac.finalize()
+                    const signature = hash.toString(CryptoJS.enc.Base64)
+
                     axios({
                         method: method,
                         json: true,
@@ -250,7 +260,17 @@ router.post('/survey/distribute', async (req, res) => {
                         })
                 } else if (sendType === 1) {
                     const date = Date.now().toString()
-                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmacKakao.update(method)
+                    hmacKakao.update(space)
+                    hmacKakao.update(urlKakao2)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(date)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(NCP_accessKey)
+                    const hashKakao = hmacKakao.finalize()
+                    const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
+
                     axios({
                         method: method,
                         json: true,
@@ -664,6 +684,7 @@ router.get('/survey/answers/result', async (req, res) => {
                 surveyCode: surveyCode,
             },
             attributes: ['identifyCode', 'answer'],
+            order: [['createdAt', 'ASC']],
         })
         console.log('SurveyOnlineAnswers', exAnswer)
         return res.status(200).json({
