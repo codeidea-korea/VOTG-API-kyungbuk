@@ -608,7 +608,7 @@ router.get('/survey/list', async (req, res) => {
             }),
         )
 
-        console.log('surveyListWithAnswerLength', surveyListWithAnswerLength)
+        // console.log('surveyListWithAnswerLength', surveyListWithAnswerLength)
 
         // console.log('UsersSurveyOnlineLayouts', exSurvey)
         return res.status(200).json({
