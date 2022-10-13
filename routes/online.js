@@ -589,12 +589,33 @@ router.get('/survey/list', async (req, res) => {
             attributes: ['surveyCode', 'status', 'survey', 'sendType', 'sendContact', 'createdAt'],
             order: [['createdAt', 'DESC']],
         })
+        const surveyAnswerResult = await Promise.all(
+            exSurvey.map((v, index) => {
+                const ansResult = DB.SurveyOnlineAnswers.findAll({
+                    where: {
+                        surveyCode: v.surveyCode,
+                    },
+                    attributes: ['identifyCode'],
+                    order: [['createdAt', 'DESC']],
+                })
+                return ansResult
+            }),
+        )
+
+        const surveyListWithAnswerLength = await Promise.all(
+            exSurvey.map((v, index) => {
+                return { ...v.dataValues, answerLength: surveyAnswerResult[index].length }
+            }),
+        )
+
+        console.log('surveyListWithAnswerLength', surveyListWithAnswerLength)
+
         // console.log('UsersSurveyOnlineLayouts', exSurvey)
         return res.status(200).json({
             isSuccess: true,
             code: 200,
             msg: 'Survey List Success',
-            payload: exSurvey,
+            payload: surveyListWithAnswerLength,
         })
     } catch (error) {
         console.error(error)
