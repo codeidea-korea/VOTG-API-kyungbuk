@@ -108,6 +108,7 @@ router.post('/issued/public', async (req, res) => {
     var config = {
         method: 'post',
         url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
         data: qs.stringify(data),
     }
 
