@@ -151,8 +151,8 @@ router.post('/issued/public', async (req, res) => {
             payload: sendGiftcon,
         })
     } catch (error) {
-        debug.error('sendGiftcon', error.response)
-        res.status(400).json({ result: '0', error: error.response })
+        debug.error('sendGiftcon', error)
+        res.status(400).json({ result: '0', error: error })
     }
 })
 
