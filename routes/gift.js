@@ -86,7 +86,7 @@ router.post('/issued', async (req, res) => {
     }
 })
 router.post('/issued/public', async (req, res) => {
-    var data = JSON.stringify({
+    var data = {
         SITE_ID: '10002296',
         COOPER_ID: 'SC1459',
         COOPER_PW: 'cwnf98@@',
@@ -103,7 +103,7 @@ router.post('/issued/public', async (req, res) => {
         PAY_ID: 'none',
         BOOKING_NO: 'none',
         SITE_URL: 'none',
-    })
+    }
 
     var config = {
         method: 'post',
