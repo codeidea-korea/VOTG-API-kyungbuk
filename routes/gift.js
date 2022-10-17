@@ -86,30 +86,47 @@ router.post('/issued', async (req, res) => {
     }
 })
 router.post('/issued/public', async (req, res) => {
-    var data = {
-        SITE_ID: '10002296',
-        COOPER_ID: 'SC1459',
-        COOPER_PW: 'cwnf98@@',
-        NO_REQ: '203449',
-        COOPER_ORDER: 'VOTG-01',
-        ISSUE_COUNT: '1',
-        CALL_CTN: '18991294',
-        SENDER: 'VOTG',
-        RCV_CTN: '01042152535',
-        RECEIVER: 'user-01042152535',
-        SEND_MSG: '뷰즈온더고 리워드 기프티콘입니다.',
-        VALID_START: '20221017',
-        VALID_END: '59D',
-        PAY_ID: 'none',
-        BOOKING_NO: 'none',
-        SITE_URL: 'none',
-    }
+    // var data = {
+    //     SITE_ID: '10002296',
+    //     COOPER_ID: 'SC1459',
+    //     COOPER_PW: 'cwnf98@@',
+    //     NO_REQ: '203449',
+    //     COOPER_ORDER: 'VOTG-01',
+    //     ISSUE_COUNT: '1',
+    //     CALL_CTN: '18991294',
+    //     SENDER: 'VOTG',
+    //     RCV_CTN: '01042152535',
+    //     RECEIVER: 'user-01042152535',
+    //     SEND_MSG: '뷰즈온더고 리워드 기프티콘입니다.',
+    //     VALID_START: '20221017',
+    //     VALID_END: '59D',
+    //     PAY_ID: 'none',
+    //     BOOKING_NO: 'none',
+    //     SITE_URL: 'none',
+    // }
 
     var config = {
         method: 'post',
         url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        data: qs.stringify(data),
+        data: {
+            SITE_ID: '10002296',
+            COOPER_ID: 'SC1459',
+            COOPER_PW: 'cwnf98@@',
+            NO_REQ: '203449',
+            COOPER_ORDER: 'VOTG-01',
+            ISSUE_COUNT: '1',
+            CALL_CTN: '18991294',
+            SENDER: 'VOTG',
+            RCV_CTN: '01042152535',
+            RECEIVER: 'user-01042152535',
+            SEND_MSG: '뷰즈온더고 리워드 기프티콘입니다.',
+            VALID_START: '20221017',
+            VALID_END: '59D',
+            PAY_ID: 'none',
+            BOOKING_NO: 'none',
+            SITE_URL: 'none',
+        },
     }
 
     axios(config)
