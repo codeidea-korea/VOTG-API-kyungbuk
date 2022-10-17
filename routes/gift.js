@@ -109,9 +109,9 @@ router.post('/issued/public', async (req, res) => {
         method: 'post',
         url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'text/plain',
         },
-        data: data,
+        data: qs.stringify(data),
     }
 
     axios(config)
