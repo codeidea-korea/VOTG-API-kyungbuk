@@ -38,6 +38,7 @@ const RouterPayment = require('./routes/payment')
 const RouterStorage = require('./routes/storage')
 const RouterConvert = require('./routes/convert')
 const RouterOnline = require('./routes/online')
+const RouterGift = require('./routes/gift')
 
 /* Mode & Debug Url Config */
 const prodChecker = process.env.NODE_ENV.trim().toLowerCase() === 'production'
@@ -130,6 +131,7 @@ app.use('/payment', RouterPayment)
 app.use('/storage', RouterStorage)
 app.use('/convert', RouterConvert)
 app.use('/online', RouterOnline)
+app.use('/gift', RouterGift)
 
 /* Url Router End-point Setting */
 app.get('*', (req, res, next) => {
