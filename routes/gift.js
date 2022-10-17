@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const multer = require('multer')
 const axios = require('axios')
+const qs = require('qs')
 const moment = require('moment')
 
 /* Auth */
@@ -69,7 +70,7 @@ router.post('/issued', async (req, res) => {
             url: 'https://atomtest.donutbook.co.kr:14076/b2ccoupon/b2cservice.asox',
             method: 'post', // POST method
             headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
-            data: reqData,
+            data: qs.stringify(reqData),
         })
 
         console.log('sendGiftcon', sendGiftcon)
@@ -118,7 +119,7 @@ router.post('/issued/public', async (req, res) => {
             url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
             method: 'post', // POST method
             headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
-            data: reqData,
+            data: qs.stringify(reqData),
         })
 
         console.log('sendGiftcon', sendGiftcon)
