@@ -94,32 +94,51 @@ router.post('/issued/public', async (req, res) => {
         // const id = req.params.id
 
         const curDate = moment().format('YYYYMMDD')
-        const reqData = {
-            SITE_ID: '10002296',
-            COOPER_ID: 'SC1459',
-            COOPER_PW: 'cwnf98@@',
-            // NO_REQ: giftiReqNo,
-            NO_REQ: '203449', // 개발서버 테스트용
-            // NO_REQ: '222983', // 실서버 츄파춥스
-            COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
-            ISSUE_COUNT: '1',
-            CALL_CTN: '18991294',
-            SENDER: 'VOTG',
-            RCV_CTN: phone,
-            // RECEIVER: `${user.name.toString()}`,
-            SEND_MSG: '뷰즈온더고 리워드 기프티콘입니다.',
-            VALID_START: `${curDate}`,
-            VALID_END: `59D`,
-            PAY_ID: 'none',
-            BOOKING_NO: 'none',
-            SITE_URL: 'none',
-        }
+        // const reqData = {
+        //     SITE_ID: '10002296',
+        //     COOPER_ID: 'SC1459',
+        //     COOPER_PW: 'cwnf98@@',
+        //     // NO_REQ: giftiReqNo,
+        //     NO_REQ: '203449', // 개발서버 테스트용
+        //     // NO_REQ: '222983', // 실서버 츄파춥스
+        //     COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
+        //     ISSUE_COUNT: '1',
+        //     CALL_CTN: '18991294',
+        //     SENDER: 'VOTG',
+        //     RCV_CTN: phone,
+        //     // RECEIVER: `${user.name.toString()}`,
+        //     SEND_MSG: '뷰즈온더고 리워드 기프티콘입니다.',
+        //     VALID_START: `${curDate}`,
+        //     VALID_END: `59D`,
+        //     PAY_ID: 'none',
+        //     BOOKING_NO: 'none',
+        //     SITE_URL: 'none',
+        // }
 
         const sendGiftcon = await axios({
             url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
             method: 'post', // POST method
             headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
-            data: qs.stringify(reqData),
+            data: {
+                SITE_ID: '10002296',
+                COOPER_ID: 'SC1459',
+                COOPER_PW: 'cwnf98@@',
+                // NO_REQ: giftiReqNo,
+                NO_REQ: '203449', // 개발서버 테스트용
+                // NO_REQ: '222983', // 실서버 츄파춥스
+                COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
+                ISSUE_COUNT: '1',
+                CALL_CTN: '18991294',
+                SENDER: 'VOTG',
+                RCV_CTN: phone,
+                RECEIVER: `user-${phone}`,
+                SEND_MSG: '뷰즈온더고 리워드 기프티콘입니다.',
+                VALID_START: `${curDate}`,
+                VALID_END: `59D`,
+                PAY_ID: 'none',
+                BOOKING_NO: 'none',
+                SITE_URL: 'none',
+            },
         })
 
         console.log('sendGiftcon', sendGiftcon)
@@ -132,8 +151,8 @@ router.post('/issued/public', async (req, res) => {
             payload: sendGiftcon,
         })
     } catch (error) {
-        debug.error('sendGiftcon', error)
-        res.status(400).json({ result: '0', error: error })
+        debug.error('sendGiftcon', error.response)
+        res.status(400).json({ result: '0', error: error.response })
     }
 })
 
