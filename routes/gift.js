@@ -108,7 +108,7 @@ router.post('/issued/public', async (req, res) => {
     var config = {
         method: 'post',
         url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        headers: { 'content-type': 'application/json' },
         data: {
             SITE_ID: '10002296',
             COOPER_ID: 'SC1459',
