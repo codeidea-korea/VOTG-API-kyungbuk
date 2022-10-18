@@ -134,8 +134,65 @@ router.post('/issued/check', async (req, res) => {
         return res.status(201).json({
             isSuccess: true,
             code: 201,
-            msg: 'Giftcon successfully issued',
+            msg: 'Giftcon Check Infomation',
             payload: jsonResult,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(401).json({
+            isSuccess: false,
+            code: 401,
+            msg: 'failed',
+            payload: error,
+        })
+    }
+})
+
+router.post('/goodsInfo', async (req, res) => {
+    try {
+        const reqData = {
+            ACTION: 'CC01_DOWN_ALL_GOODSINFO',
+            SITE_ID: '10002296',
+            COOPER_ID: 'SC1459',
+            COOPER_PW: 'cwnf98@@',
+        }
+        const rawXml = await axios.post(
+            'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
+            qs.stringify(reqData),
+        )
+        const { data: xmlRes } = rawXml
+
+        const rawJson = JSON.parse(
+            convert.xml2json(xmlRes, {
+                compact: true,
+                spaces: 4,
+            }),
+        )
+
+        const { CJSERVICE: jsonResult } = rawJson
+        const goodsInfo = jsonResult.GOODS_LIST.GOODS_INFO
+
+        // 다우기술로부터 넘어오는 goodsInfo가 배열일수도 있고 단순 객체일수도 있다.
+        // 형태가 객체 안에 객체로 _text라는 key에 value다 달린 형태라 형태를 보기좋게 변환해준다.
+        const refinedData = ((info) => {
+            return Array.isArray(info)
+                ? info.map((goods) => {
+                      return Object.keys(goods).reduce((acc, key) => {
+                          acc[key] = goods[key]._text
+                          return acc
+                      }, {})
+                  })
+                : Object.keys(info).reduce((acc, key) => {
+                      acc[key] = info[key]._text
+                      return acc
+                  }, {})
+        })(goodsInfo)
+
+        return res.status(201).json({
+            isSuccess: true,
+            code: 201,
+            msg: 'Goods Infomation',
+            payload: refinedData,
         })
     } catch (error) {
         console.error(error)
