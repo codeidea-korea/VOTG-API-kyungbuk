@@ -150,4 +150,61 @@ router.post('/issued/public', async (req, res) => {
         })
 })
 
+/*
+"production":{
+        "COOPER_ID":"SC1459",
+        "COOPER_PW":"cwnf98@@",
+        "SITE_ID":"10002296",
+        "CALL_CTN":"18991294",
+        "SENDER":"로코모션뷰 리워드 기프티콘",
+        "SEND_MSG":"로코모션뷰 리워드 기프티콘입니다.",
+        "URL":"https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx"
+    },
+    */
+router.post('/issued/pub', async (req, res) => {
+    try {
+        const curDate = moment().format('YYYYMMDD')
+        const reqData = {
+            ACTION: 'CI102_ISSUECPN_WITHPAY',
+            SITE_ID: '10002296',
+            COOPER_ID: 'SC1459',
+            COOPER_PW: 'cwnf98@@',
+            NO_REQ: '203449',
+            COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
+            ISSUE_COUNT: '1',
+            CALL_CTN: '18991294',
+            SENDER: '로코모션뷰 리워드 기프티콘',
+            RCV_CTN: '01042152535',
+            RECEIVER: '테스터단',
+            SEND_MSG: '로코모션뷰 리워드 기프티콘입니다.',
+            VALID_START: `${curDate}`,
+            VALID_END: `${moment(curDate).add(1, 'y').format('YYYYMMDD')}`,
+            PAY_ID: 'fajsdkfq',
+            BOOKING_NO: 'joiwfef',
+            SITE_URL: 'nkew',
+        }
+        const pubRequestPromise = axios.post(
+            'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
+            qs.stringify(reqData),
+        )
+        const pubRequest = await Promise.all(pubRequestPromise)
+
+        console.log(pubRequest)
+        return res.status(201).json({
+            isSuccess: true,
+            code: 201,
+            msg: 'Giftcon successfully issued',
+            payload: pubRequest,
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(401).json({
+            isSuccess: false,
+            code: 401,
+            msg: 'failed',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router
