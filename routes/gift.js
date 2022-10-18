@@ -96,7 +96,7 @@ router.post('/issued/pub', async (req, res) => {
             payload: jsonResult,
         })
     } catch (error) {
-        console.log(error)
+        console.error(error)
         return res.status(401).json({
             isSuccess: false,
             code: 401,
@@ -106,5 +106,42 @@ router.post('/issued/pub', async (req, res) => {
     }
 })
 
-router.post('/issued/list', async (req, res) => {})
+router.post('/issued/check', async (req, res) => {
+    try {
+        const { cooperOrder } = req.body
+        const reqData = {
+            ACTION: 'CI07113_QUERY_COOPERORDER_WITHPAY',
+            SITE_ID: '10002296',
+            COOPER_ID: 'SC1459',
+            COOPER_PW: 'cwnf98@@',
+            COOPER_ORDER: cooperOrder,
+        }
+        const rawXml = await axios.post(gifticonConfig.URL, qs.stringify(reqData))
+        const { data: xmlRes } = rawXml
+
+        const rawJson = JSON.parse(
+            convert.xml2json(xmlRes, {
+                compact: true,
+                spaces: 4,
+            }),
+        )
+
+        const { CJSERVICE: jsonResult } = rawJson
+
+        return res.status(201).json({
+            isSuccess: true,
+            code: 201,
+            msg: 'Giftcon successfully issued',
+            payload: jsonResult,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(401).json({
+            isSuccess: false,
+            code: 401,
+            msg: 'failed',
+            payload: error,
+        })
+    }
+})
 module.exports = router
