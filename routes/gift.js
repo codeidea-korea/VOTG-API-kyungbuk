@@ -225,7 +225,7 @@ router.post('/issued/cancel', async (req, res) => {
 })
 
 router.post('/goodsInfo', async (req, res) => {
-    res.set('Access-Control-Allow-Origin', 'http://localhost:7701')
+    res.header('Access-Control-Allow-Origin', '*')
     try {
         const reqData = {
             ACTION: 'CC01_DOWN_ALL_GOODSINFO',
