@@ -107,14 +107,14 @@ router.post('/issued/public', async (req, res) => {
 
     var config = {
         method: 'post',
-        url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
-        headers: { 'content-type': 'application/json' },
+        url: 'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx?ACTION=CI102_ISSUECPN_WITHPAY',
+        headers: { 'Content-Type': 'application/json' },
         data: {
             SITE_ID: '10002296',
             COOPER_ID: 'SC1459',
             COOPER_PW: 'cwnf98@@',
             NO_REQ: '203449',
-            COOPER_ORDER: 'VOTG-01',
+            COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
             ISSUE_COUNT: '1',
             CALL_CTN: '18991294',
             SENDER: 'VOTG',
