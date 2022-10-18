@@ -105,6 +105,45 @@ router.post('/issued/pub', async (req, res) => {
 
 router.post('/issued/check', async (req, res) => {
     try {
+        const { cooperNumber } = req.body
+        const reqData = {
+            ACTION: 'CI06_QUERY_NOCPN',
+            SITE_ID: process.env.DAU_SITE_ID,
+            COOPER_ID: process.env.DAU_COOPER_ID,
+            COOPER_PW: process.env.DAU_COOPER_PW,
+            NO_CPN: cooperNumber,
+        }
+        const rawXml = await axios.post(process.env.DAU_CALL_URL, qs.stringify(reqData))
+        const { data: xmlRes } = rawXml
+
+        const rawJson = JSON.parse(
+            convert.xml2json(xmlRes, {
+                compact: true,
+                spaces: 4,
+            }),
+        )
+
+        const { CJSERVICE: jsonResult } = rawJson
+
+        return res.status(201).json({
+            isSuccess: true,
+            code: 201,
+            msg: 'Giftcon Check Infomation',
+            payload: jsonResult,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(401).json({
+            isSuccess: false,
+            code: 401,
+            msg: 'failed',
+            payload: error,
+        })
+    }
+})
+
+router.post('/issued/list', async (req, res) => {
+    try {
         const { cooperOrder } = req.body
         const reqData = {
             ACTION: 'CI07113_QUERY_COOPERORDER_WITHPAY',
@@ -171,7 +210,7 @@ router.post('/issued/cancel', async (req, res) => {
         return res.status(201).json({
             isSuccess: true,
             code: 201,
-            msg: 'Giftcon Check Infomation',
+            msg: 'Giftcon successfully caceled',
             payload: jsonResult,
         })
     } catch (error) {
