@@ -187,7 +187,7 @@ router.post('/issued/pub', async (req, res) => {
             'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
             qs.stringify(reqData),
         )
-        const pubRequest = await Promise.all(pubRequestPromise)
+        const [pubRequest] = await Promise.all([pubRequestPromise])
 
         console.log(pubRequest)
         return res.status(201).json({
