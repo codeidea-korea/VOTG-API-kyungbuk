@@ -116,7 +116,10 @@ router.post('/issued/check', async (req, res) => {
             COOPER_PW: 'cwnf98@@',
             COOPER_ORDER: cooperOrder,
         }
-        const rawXml = await axios.post(gifticonConfig.URL, qs.stringify(reqData))
+        const rawXml = await axios.post(
+            'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
+            qs.stringify(reqData),
+        )
         const { data: xmlRes } = rawXml
 
         const rawJson = JSON.parse(
