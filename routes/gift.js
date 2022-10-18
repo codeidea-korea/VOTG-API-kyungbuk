@@ -56,13 +56,13 @@ router.post('/issued/pub', async (req, res) => {
         const curDate = moment().format('YYYYMMDD')
         const reqData = {
             ACTION: 'CI102_ISSUECPN_WITHPAY',
-            SITE_ID: '10002296',
-            COOPER_ID: 'SC1459',
-            COOPER_PW: 'cwnf98@@',
+            SITE_ID: process.env.DAU_SITE_ID,
+            COOPER_ID: process.env.DAU_COOPER_ID,
+            COOPER_PW: process.env.DAU_COOPER_PW,
             NO_REQ: '203449',
             COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
             ISSUE_COUNT: '1',
-            CALL_CTN: '18991294',
+            CALL_CTN: process.env.DAU_CALL_CTN,
             SENDER: '로코모션뷰 리워드 기프티콘',
             RCV_CTN: `${phoneNumber}`,
             RECEIVER: '테스터단',
@@ -73,10 +73,7 @@ router.post('/issued/pub', async (req, res) => {
             BOOKING_NO: 'joiwfef',
             SITE_URL: 'nkew',
         }
-        const pubRequestPromise = axios.post(
-            'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
-            qs.stringify(reqData),
-        )
+        const pubRequestPromise = axios.post(process.env.DAU_CALL_URL, qs.stringify(reqData))
         const [pubRequest] = await Promise.all([pubRequestPromise])
 
         const { data: xmlRes } = pubRequest
@@ -111,15 +108,55 @@ router.post('/issued/check', async (req, res) => {
         const { cooperOrder } = req.body
         const reqData = {
             ACTION: 'CI07113_QUERY_COOPERORDER_WITHPAY',
-            SITE_ID: '10002296',
-            COOPER_ID: 'SC1459',
-            COOPER_PW: 'cwnf98@@',
+            SITE_ID: process.env.DAU_SITE_ID,
+            COOPER_ID: process.env.DAU_COOPER_ID,
+            COOPER_PW: process.env.DAU_COOPER_PW,
             COOPER_ORDER: cooperOrder,
         }
-        const rawXml = await axios.post(
-            'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
-            qs.stringify(reqData),
+        const rawXml = await axios.post(process.env.DAU_CALL_URL, qs.stringify(reqData))
+        const { data: xmlRes } = rawXml
+
+        const rawJson = JSON.parse(
+            convert.xml2json(xmlRes, {
+                compact: true,
+                spaces: 4,
+            }),
         )
+
+        const { CJSERVICE: jsonResult } = rawJson
+
+        return res.status(201).json({
+            isSuccess: true,
+            code: 201,
+            msg: 'Giftcon Check Infomation',
+            payload: jsonResult,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(401).json({
+            isSuccess: false,
+            code: 401,
+            msg: 'failed',
+            payload: error,
+        })
+    }
+})
+
+router.post('/issued/cancel', async (req, res) => {
+    try {
+        const { phoneNumber, cooperNumber } = req.body
+        const reqData = {
+            ACTION: 'CI104_DISUSECPN',
+            SITE_ID: process.env.DAU_SITE_ID,
+            COOPER_ID: process.env.DAU_COOPER_ID,
+            COOPER_PW: process.env.DAU_COOPER_PW,
+            NO_CPN: `${cooperNumber}`,
+            CALL_CTN: process.env.DAU_CALL_CTN,
+            RCV_CTN: `${phoneNumber}`,
+            REQUEST_ID: 'notUsedSoRandomString',
+            REASON: 'notUsedSoRandomString',
+        }
+        const rawXml = await axios.post(process.env.DAU_CALL_URL, qs.stringify(reqData))
         const { data: xmlRes } = rawXml
 
         const rawJson = JSON.parse(
@@ -152,14 +189,11 @@ router.post('/goodsInfo', async (req, res) => {
     try {
         const reqData = {
             ACTION: 'CC01_DOWN_ALL_GOODSINFO',
-            SITE_ID: '10002296',
-            COOPER_ID: 'SC1459',
-            COOPER_PW: 'cwnf98@@',
+            SITE_ID: process.env.DAU_SITE_ID,
+            COOPER_ID: process.env.DAU_COOPER_ID,
+            COOPER_PW: process.env.DAU_COOPER_PW,
         }
-        const rawXml = await axios.post(
-            'https://atom.donutbook.co.kr/b2ccoupon/b2cservice.aspx',
-            qs.stringify(reqData),
-        )
+        const rawXml = await axios.post(process.env.DAU_CALL_URL, qs.stringify(reqData))
         const { data: xmlRes } = rawXml
 
         const rawJson = JSON.parse(
