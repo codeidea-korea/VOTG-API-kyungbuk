@@ -21,10 +21,10 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       comment: "0:취소(회색), 1:승인(파랑), 2:실패(빨강), 3:오류(노랑)"
     },
-    impUid: {
+    billingUid: {
       type: DataTypes.STRING(255),
       allowNull: true,
-      comment: "아임포트 식별번호"
+      comment: "결제 식별번호:DAOUTRX"
     },
     registerCode: {
       type: DataTypes.STRING(255),
@@ -35,7 +35,7 @@ module.exports = function(sequelize, DataTypes) {
     orderType: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      comment: "주문 타입 => 0:요금제, 1: 패널구매, 2: 리워드"
+      comment: "주문 타입 => 0:plan, 1: panel, 2: reward"
     },
     orderCode: {
       type: DataTypes.STRING(255),

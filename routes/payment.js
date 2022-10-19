@@ -192,8 +192,25 @@ router.post('/callbackResult', async (req, res) => {
 
 router.get('/checkout', async (req, res) => {
     try {
+        //일반결제 결과 통보 확인
         debug.axios('checkout', req.query)
         return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/checkout/status', async (req, res) => {
+    try {
+        //일반결제 결과 통보 확인
+        debug.axios('checkout-status', false)
+        return res.status(200).send(false)
     } catch (error) {
         console.error(error)
         return res.status(400).json({
@@ -487,7 +504,7 @@ router.post('/payBilling', async (req, res) => {
                 AMOUNT: price,
                 PRODUCTNAME: `${orderName}`,
                 IPADDRESS: '0.0.0.0',
-                USERID: `${UserCode}`,
+                USERID: `${UserCode.toString('hex')}`,
                 PRODUCTCODE: `${merchantUid}`,
                 QUOTA: '00',
                 TAXFREECD: '00',
@@ -512,9 +529,22 @@ router.post('/payBilling', async (req, res) => {
             "AUTHDATE": "20220929172347",
             "TOKEN": "4244afd4d4d015a44486819b05ae7b09ae"
         */
-        const { RESULTCODE, ERRORMESSAGE, AUTHNO, DAOUTRX, CPTELNO, AMOUNT } = paymentResult.data
+
+        const { RESULTCODE, ERRORMESSAGE, AUTHNO, DAOUTRX, CPTELNO, AMOUNT, AUTHDATE } =
+            paymentResult.data
 
         if (RESULTCODE === '0000') {
+            await DB.UsersPaymentRequest.create({
+                UserCode: Buffer.from(UserCode, 'hex'),
+                issuedAt: Date.now(),
+                status: 1,
+                billingUid: DAOUTRX,
+                registerCode: CardInfo.registerCode,
+                orderType: orderType,
+                orderCode: merchantUid,
+                orderName: orderName,
+                amount: price,
+            })
             return res.status(201).json({
                 isSuccess: true,
                 code: 201,
@@ -522,6 +552,17 @@ router.post('/payBilling', async (req, res) => {
                 payload: paymentResult.data,
             })
         } else {
+            await DB.UsersPaymentRequest.create({
+                UserCode: Buffer.from(UserCode, 'hex'),
+                issuedAt: Date.now(),
+                status: 2,
+                billingUid: DAOUTRX,
+                registerCode: CardInfo.registerCode,
+                orderType: orderType,
+                orderCode: merchantUid,
+                orderName: orderName,
+                amount: price,
+            })
             return res.status(403).json({
                 isSuccess: false,
                 code: 403,
