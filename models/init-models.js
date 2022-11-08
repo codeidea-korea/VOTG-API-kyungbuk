@@ -4,6 +4,7 @@ var _OrganizationsMembers = require("./OrganizationsMembers");
 var _Services = require("./Services");
 var _ServicesCustomers = require("./ServicesCustomers");
 var _SurveyAnswers = require("./SurveyAnswers");
+var _SurveyAnswersEachUrl = require("./SurveyAnswersEachUrl");
 var _SurveyOnlineAnswers = require("./SurveyOnlineAnswers");
 var _Users = require("./Users");
 var _UsersDetail = require("./UsersDetail");
@@ -22,6 +23,7 @@ function initModels(sequelize) {
   var Services = _Services(sequelize, DataTypes);
   var ServicesCustomers = _ServicesCustomers(sequelize, DataTypes);
   var SurveyAnswers = _SurveyAnswers(sequelize, DataTypes);
+  var SurveyAnswersEachUrl = _SurveyAnswersEachUrl(sequelize, DataTypes);
   var SurveyOnlineAnswers = _SurveyOnlineAnswers(sequelize, DataTypes);
   var Users = _Users(sequelize, DataTypes);
   var UsersDetail = _UsersDetail(sequelize, DataTypes);
@@ -75,6 +77,7 @@ function initModels(sequelize) {
     Services,
     ServicesCustomers,
     SurveyAnswers,
+    SurveyAnswersEachUrl,
     SurveyOnlineAnswers,
     Users,
     UsersDetail,

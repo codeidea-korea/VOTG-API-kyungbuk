@@ -202,6 +202,20 @@ CREATE OR REPLACE TABLE SurveyOnlineAnswers
     PRIMARY KEY (IdentifyCode, surveyCode)
 ) charset = utf8mb3;
 
+DROP TABLE SurveyOnlineAnswers;
+CREATE OR REPLACE TABLE SurveyAnswersEachUrl
+(
+    identifyCode    varchar(255)                                    null comment '응답자 고유식별자',
+    phoneCode    varchar(255)                                  null comment '응답자 휴대전화번호 식별자',
+	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
+    answer      JSON                                    not null comment '변경된 설문 데이터',
+	status      int         default 0                   not null comment '0:응답전, 1:응답중, 2:응답완료',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (IdentifyCode, surveyCode)
+) charset = utf8mb3;
+
 
 DROP TABLE UsersPaymentCard;
 CREATE OR REPLACE TABLE UsersPaymentCard

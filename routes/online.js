@@ -15,6 +15,7 @@ const bcrypt = require('bcrypt')
 const { uuid, empty } = require('uuidv4')
 const Cache = require('memory-cache')
 const CryptoJS = require('crypto-js')
+const createResourceCode = require('../Utils/create-resource-id')
 
 /* NCP SENS */
 const NCP_accessKey = process.env.NCP_ACCESS_KEY
@@ -157,6 +158,238 @@ router.post('/requestMail', async (req, res) => {
             code: 200,
             msg: 'Survey Dstribute Success',
             payload: null,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/survey/save', async (req, res) => {
+    // console.log(req)
+    try {
+        const {
+            UserCode,
+            surveyCode,
+            surveyType,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+            fileCode,
+        } = req.body
+        const createOnlineSurvey = await DB.UsersSurveyOnlineLayouts.create({
+            UserCode: Buffer.from(UserCode, 'hex'),
+            surveyCode: surveyCode,
+            status: 0,
+            surveyType: surveyType,
+            survey: surveyJson.toString(),
+            sendType: sendType,
+            sendContact: sendContact.toString(),
+            sendURL: sendURL,
+            thumbnail: thumbnail,
+            fileCode: fileCode,
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Save Success',
+            payload: {
+                surveyCode,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/survey/distribute/eachurl', async (req, res) => {
+    // console.log(req)
+    try {
+        const {
+            UserCode,
+            surveyCode,
+            // surveyType,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+            fileCode,
+        } = req.body
+
+        // console.log('UsersSurveyOnlineLayouts - Update', surveyCode)
+        const updateSurveyLoineLayouts = await DB.UsersSurveyOnlineLayouts.update(
+            {
+                status: 1,
+                // surveyType: surveyType,
+                survey: surveyJson.toString(),
+                sendType: sendType,
+                sendContact: sendContact.toString(),
+                sendURL: sendURL,
+                thumbnail: thumbnail,
+                fileCode: fileCode,
+            },
+            { where: { surveyCode: surveyCode } },
+        )
+        //SENS
+        const contactJson = JSON.parse(sendContact)
+        // console.log('contactJson', contactJson)
+        if (contactJson.phoneNumbers !== undefined) {
+            contactJson.phoneNumbers.map(async (phone, pIndex) => {
+                // console.log('phoneNumbers', phone)
+                const newIdentifyCode = createResourceCode(8)
+                const phoneCode = await bcrypt.hash(phone, 12)
+                const createSurveyDocuments = await DB.SurveyAnswersEachUrl.create({
+                    identifyCode: newIdentifyCode,
+                    phoneCode: phoneCode,
+                    surveyCode: surveyCode,
+                    answer: `[]`,
+                    status: 0,
+                })
+
+                if (sendType === 0) {
+                    const date = Date.now().toString()
+                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmac.update(method)
+                    hmac.update(space)
+                    hmac.update(url2)
+                    hmac.update(newLine)
+                    hmac.update(date)
+                    hmac.update(newLine)
+                    hmac.update(NCP_accessKey)
+                    const hash = hmac.finalize()
+                    const signature = hash.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: url,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signature,
+                        },
+                        data: {
+                            type: 'SMS',
+                            contentType: 'COMM',
+                            countryCode: '82',
+                            from: NCP_fromNumber,
+                            // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
+                            // content: `[뷰즈온더고]\n설문조사 바로가기\nhttps://survey.gift${sendURL}?c=${newIdentifyCode}`,
+                            content: `[뷰즈온더고]\n설문조사 바로가기\nhttp://172.24.4.176:7701${sendURL}?c=${newIdentifyCode}`,
+                            // content: `[뷰즈온더고]\n테스터 참여하기\n접속링크:https://viewsonthego.com/auth/login\n아이디:tester@votg.com\n비밀번호:tester00!\n\n설문조사 응답바로가기\nhttps://survey.gift${sendURL}`,
+                            messages: [
+                                {
+                                    to: `${phone}`,
+                                },
+                            ],
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.response.data)
+                            // return res.status(error.response.status).json({
+                            //     isSuccess: false,
+                            //     code: error.response.status,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error.response.data,
+                            // })
+                        })
+                } else if (sendType === 1) {
+                    const date = Date.now().toString()
+                    const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmacKakao.update(method)
+                    hmacKakao.update(space)
+                    hmacKakao.update(urlKakao2)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(date)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(NCP_accessKey)
+                    const hashKakao = hmacKakao.finalize()
+                    const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: urlKakao,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signatureKakao,
+                        },
+                        data: {
+                            plusFriendId: '@뷰즈온더고',
+                            templateCode: 'votgalim01',
+                            messages: [
+                                {
+                                    countryCode: '82',
+                                    to: `${phone}`,
+                                    content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
+                                    buttons: [
+                                        {
+                                            type: 'WL',
+                                            name: '설문조사 바로가기',
+                                            linkMobile: `https://survey.gift${sendURL}`,
+                                            linkPc: `https://survey.gift${sendURL}`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.data)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                }
+            })
+        }
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Change & Dstribute Success',
+            payload: {
+                surveyCode,
+            },
         })
     } catch (error) {
         console.error(error)
@@ -556,7 +789,7 @@ router.get('/survey/answer', async (req, res) => {
             where: {
                 surveyCode: surveyCode,
             },
-            attributes: ['survey'],
+            attributes: ['survey', 'status'],
         })
         // console.log('UsersSurveyDocument', exSurvey)
         return res.status(200).json({
@@ -565,6 +798,38 @@ router.get('/survey/answer', async (req, res) => {
             msg: 'Survey Dstribute Success',
             payload: {
                 ...exSurvey,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/survey/answer/eachurl', async (req, res) => {
+    // console.log(req)
+    try {
+        var identifyCode = req.query.identifyCode
+        var surveyCode = req.query.surveyCode
+        const exSurvey = await DB.SurveyAnswersEachUrl.findOne({
+            where: {
+                identifyCode: identifyCode,
+                surveyCode: surveyCode,
+            },
+            attributes: ['status', 'identifyCode', 'phoneCode', 'surveyCode'],
+        })
+        // console.log('UsersSurveyDocument', exSurvey)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Answer Exist ',
+            payload: {
+                ...exSurvey.dataValues,
             },
         })
     } catch (error) {
@@ -637,6 +902,37 @@ router.post('/survey/answer', async (req, res) => {
             surveyCode: surveyCode,
             answer: answerJson.toString(),
         })
+        // console.log('UsersSurveyDocuments', createSurveyDocuments)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Answer Complete',
+            payload: {
+                surveyCode,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/survey/answer/eachurl', async (req, res) => {
+    // console.log(req)
+    try {
+        const { identifyCode, surveyCode, answerJson } = req.body
+        const createSurveyDocuments = await DB.SurveyAnswersEachUrl.update(
+            {
+                answer: answerJson.toString(),
+                status: 2,
+            },
+            { where: { identifyCode: identifyCode, surveyCode: surveyCode } },
+        )
         // console.log('UsersSurveyDocuments', createSurveyDocuments)
         return res.status(200).json({
             isSuccess: true,
