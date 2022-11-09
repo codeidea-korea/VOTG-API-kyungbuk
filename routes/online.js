@@ -828,9 +828,7 @@ router.get('/survey/answer/eachurl', async (req, res) => {
             isSuccess: true,
             code: 200,
             msg: 'Survey Answer Exist ',
-            payload: {
-                ...exSurvey.dataValues,
-            },
+            payload: exSurvey,
         })
     } catch (error) {
         console.error(error)
