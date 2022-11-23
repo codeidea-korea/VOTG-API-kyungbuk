@@ -5,6 +5,7 @@ SELECT UUID();
 SELECT REPLACE(UUID(),'-','');
 SELECT UNHEX(REPLACE(UUID(),'-',''));
 SELECT LENGTH(UNHEX(REPLACE(UUID(),'-','')));
+
 # SELECT SYS_GUID();
 
 #Check All DB Size
@@ -180,7 +181,7 @@ CREATE OR REPLACE TABLE UsersSurveyOnlineLayouts
 DROP TABLE SurveyAnswers;
 CREATE OR REPLACE TABLE SurveyAnswers
 (
-    identifyCode    binary(16)                                  null comment '응답자 고유식별자',
+    identifyCode    binary(16)       default UUID()                              null comment '응답자 고유식별자',
 	fileCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
     answer      JSON                                    not null comment '변경된 설문 데이터',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
@@ -189,11 +190,24 @@ CREATE OR REPLACE TABLE SurveyAnswers
     PRIMARY KEY (IdentifyCode, fileCode)
 ) charset = utf8mb3;
 
+INSERT INTO SurveyOnlineAnswers (identifyCode, surveyCode, answer) VALUES (UNHEX(REPLACE(UUID(),'-','')), '1f0f6c8cd554da70c596680cf1ee044c', '[]');
+
+DELIMITER $$
+CREATE PROCEDURE SurveyOnlineAnswersInsert() -- ⓐ myFunction이라는 이름의 프로시져
+BEGIN
+    DECLARE i INT DEFAULT 1; -- ⓑ i변수 선언, defalt값으로 1설정
+    WHILE (i <= 60) DO -- ⓒ for문 작성(i가 1000이 될 때까지 반복)
+        INSERT INTO SurveyOnlineAnswers (identifyCode, surveyCode, answer) VALUES (UNHEX(REPLACE(UUID(),'-','')), '1f0f6c8cd554da70c596680cf1ee044c', '[]');
+        SET i = i + 1; -- ⓔ i값에 1더해주고 WHILE문 처음으로 이동
+    END WHILE;
+END$$
+DELIMITER ;
+CALL SurveyOnlineAnswersInsert();
 
 DROP TABLE SurveyOnlineAnswers;
 CREATE OR REPLACE TABLE SurveyOnlineAnswers
 (
-    identifyCode    binary(16)                                  null comment '응답자 고유식별자',
+    identifyCode    binary(16)                               null comment '응답자 고유식별자',
 	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
     answer      JSON                                    not null comment '변경된 설문 데이터',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
@@ -202,7 +216,10 @@ CREATE OR REPLACE TABLE SurveyOnlineAnswers
     PRIMARY KEY (IdentifyCode, surveyCode)
 ) charset = utf8mb3;
 
-DROP TABLE SurveyOnlineAnswers;
+SELECT * FROM SurveyOnlineAnswers WHERE surveyCode = '1f0f6c8cd554da70c596680cf1ee044c';
+
+
+DROP TABLE SurveyAnswersEachUrl;
 CREATE OR REPLACE TABLE SurveyAnswersEachUrl
 (
     identifyCode    varchar(255)                                    null comment '응답자 고유식별자',
