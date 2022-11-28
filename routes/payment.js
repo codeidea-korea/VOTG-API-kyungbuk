@@ -190,10 +190,35 @@ router.post('/callbackResult', async (req, res) => {
     }
 })
 
+router.post('/cachedBilling', async (req, res) => {
+    try {
+        const { OrderNo } = req.body
+        Cache.del(OrderNo)
+        Cache.put(OrderNo, false, 1000 * 60 * 5)
+        debug.axios('cachedBilling', OrderNo)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'CachedBilling complete',
+            payload: { OrderNo },
+        })
+    } catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 router.get('/checkout', async (req, res) => {
     try {
         //일반결제 결과 통보 확인
-        debug.axios('checkout', req.query)
+        // debug.axios('checkout', req.query)
+        debug.axios('checkout', req.query.USERID)
+        debug.axios('checkout', req.query.ORDERNO)
+        Cache.put(req.query.ORDERNO, true, 1000 * 30)
         return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
     } catch (error) {
         console.error(error)
@@ -206,11 +231,18 @@ router.get('/checkout', async (req, res) => {
     }
 })
 
-router.get('/checkout/status', async (req, res) => {
+router.post('/checkout/status', async (req, res) => {
     try {
+        const { OrderNo } = req.body
+        const payResult = Cache.get(OrderNo)
         //일반결제 결과 통보 확인
-        debug.axios('checkout-status', false)
-        return res.status(200).send(false)
+        // debug.axios('checkout-status', payResult)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'CachedBilling status',
+            payload: { result: payResult },
+        })
     } catch (error) {
         console.error(error)
         return res.status(400).json({
