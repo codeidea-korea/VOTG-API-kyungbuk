@@ -90,7 +90,7 @@ router.post('/requestMail', async (req, res) => {
         // auth: { user: 'jwlryk@gmail.com', pass: 'bqgamkfolhzhnnar' },
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: { user: 'votg.survey@gmail.com', pass: 'gwevbcckcxvbxhyw' },
+            auth: { user: 'votg.survey@gmail.com', pass: 'maykbwtqrshcdfgd' },
             secure: true,
         })
 
