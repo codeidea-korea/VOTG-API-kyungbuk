@@ -4,6 +4,7 @@ module.exports = function(sequelize, DataTypes) {
     identifyCode: {
       type: DataTypes.BLOB,
       allowNull: false,
+      defaultValue: Sequelize.Sequelize.fn('uuid'),
       primaryKey: true,
       comment: "응답자 고유식별자"
     },

@@ -192,15 +192,33 @@ router.post('/callbackResult', async (req, res) => {
 
 router.post('/cachedBilling', async (req, res) => {
     try {
-        const { OrderNo } = req.body
-        Cache.del(OrderNo)
-        Cache.put(OrderNo, false, 1000 * 60 * 5)
-        debug.axios('cachedBilling', OrderNo)
+        const { UserCode, orderCode, orderType, orderName, price } = req.body
+        Cache.del(orderCode)
+        Cache.put(orderCode, false, 1000 * 60 * 5)
+        debug.axios('cachedBilling', req.body)
+        const exOrderCode = await DB.UsersPaymentRequest.findAll({
+            where: {
+                UserCode: Buffer.from(UserCode, 'hex'),
+                orderCode: orderCode,
+            },
+        })
+        if (!exOrderCode.length > 0) {
+            await DB.UsersPaymentRequest.create({
+                UserCode: Buffer.from(UserCode, 'hex'),
+                issuedAt: Date.now(),
+                status: 0,
+                orderType: orderType,
+                orderCode: orderCode,
+                orderName: orderName,
+                amount: price,
+            })
+        }
+
         return res.status(200).json({
             isSuccess: true,
             code: 200,
             msg: 'CachedBilling complete',
-            payload: { OrderNo },
+            payload: { orderCode },
         })
     } catch (error) {
         return res.status(400).json({
@@ -215,10 +233,24 @@ router.post('/cachedBilling', async (req, res) => {
 router.get('/checkout', async (req, res) => {
     try {
         //일반결제 결과 통보 확인
-        // debug.axios('checkout', req.query)
-        debug.axios('checkout', req.query.USERID)
-        debug.axios('checkout', req.query.ORDERNO)
+        debug.axios('checkout', req.query)
+        // debug.axios('checkout', req.query.USERID)
+        // debug.axios('checkout', req.query.ORDERNO)
         Cache.put(req.query.ORDERNO, true, 1000 * 30)
+        const exOrderUpdate = await DB.UsersPaymentRequest.update(
+            {
+                issuedAt: Date.now(),
+                status: 1,
+                registerCode: req.query.CARDNO,
+                billingUid: req.query.DAOUTRX,
+            },
+            {
+                where: {
+                    orderCode: req.query.ORDERNO,
+                },
+            },
+        )
+
         return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
     } catch (error) {
         console.error(error)
@@ -233,8 +265,8 @@ router.get('/checkout', async (req, res) => {
 
 router.post('/checkout/status', async (req, res) => {
     try {
-        const { OrderNo } = req.body
-        const payResult = Cache.get(OrderNo)
+        const { orderCode } = req.body
+        const payResult = Cache.get(orderCode)
         //일반결제 결과 통보 확인
         // debug.axios('checkout-status', payResult)
         return res.status(200).json({
@@ -493,6 +525,7 @@ router.post('/payBilling', async (req, res) => {
         const CardInfo = await DB.UsersPaymentCard.findOne({
             where: { UserCode: Buffer.from(UserCode, 'hex'), cardNumber: cardNumber },
         })
+        // console.log('CardInfo.registerCode', CardInfo.registerCode)
         //REST API Key: 1538504562143613
         //REST API Secret
         /*
@@ -514,9 +547,7 @@ router.post('/payBilling', async (req, res) => {
         })
 
         const { RETURNURL, TOKEN } = getToken.data // 인증 토큰
-        console.log('getToken', getToken.data)
-        console.log('RETURNURL', RETURNURL)
-        console.log('TOKEN', TOKEN)
+        // console.log('getToken', getToken.data)
 
         const paymentResult = await axios({
             url: `${RETURNURL}`,
@@ -529,22 +560,38 @@ router.post('/payBilling', async (req, res) => {
             }, // 인증 토큰 Authorization header에 추가
             data: {
                 CPID: 'CMP67648',
-                PAYMETHOD: 'CARD-BATCH',
+                PAYMETHOD: 'CARD-KEYGEN',
                 ORDERNO: `order-${customerUid}-${Date.now()}`,
                 PRODUCTTYPE: '1',
                 BILLTYPE: '14',
-                AMOUNT: price,
-                PRODUCTNAME: `${orderName}`,
+                // AMOUNT: price,
+                AMOUNT: '1000',
+                PRODUCTNAME: orderName,
                 IPADDRESS: '0.0.0.0',
-                USERID: `${UserCode.toString('hex')}`,
-                PRODUCTCODE: `${merchantUid}`,
+                USERID: `${Buffer.from(UserCode, 'hex').toString('hex')}`,
+                PRODUCTCODE: merchantUid,
                 QUOTA: '00',
                 TAXFREECD: '00',
-                AUTOKEY: `${CardInfo.registerCode}`,
+                AUTOKEY: CardInfo.registerCode,
             },
         })
+        /*{
+            "CPID" : "CMP67648",
+            "PAYMETHOD": "CARD-KEYGEN",
+            "ORDERNO": "13cf0bcfcb7347d8800247cae6982b99-220910-0",
+            "PRODUCTTYPE":"1",
+            "BILLTYPE":"14",
+            "AMOUNT":"1000",
+            "PRODUCTNAME":"BASIC PLAN",
+            "IPADDRESS": "172.24.4.23",
+            "USERID":"13cf0bcfcb7347d8800247cae6982b99",
+            "PRODUCTCODE": "basic-00",
+            "QUOTA": "00",
+            "TAXFREECD": "00",
+            "AUTOKEY":"C20229T2A4213"
+        }*/
 
-        console.log(paymentResult.data)
+        console.log('paymentResult', paymentResult.data)
 
         /*
             "ERRORMESSAGE": "정상 처리 되었습니다.",

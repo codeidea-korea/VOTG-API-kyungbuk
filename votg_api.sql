@@ -272,7 +272,7 @@ CREATE OR REPLACE TABLE UsersPaymentRequest
 (
     UserCode                binary(16)                       null comment '사용자 고유식별자',
     issuedAt                varchar(255)                 not null comment '처리 시기',
-    status                  varchar(255)                 not null comment '0:취소(회색), 1:승인(파랑), 2:실패(빨강), 3:오류(노랑)',
+    status                  varchar(255)                 not null comment '0:시도(회색), 1:승인(파랑), 2:실패(빨강), 3:취소(노랑)',
     billingUid              varchar(255)                     null comment '결제 식별번호:DAOUTRX',
     registerCode            varchar(255)                     null comment '카드 고유 식별번호',
     orderType               varchar(255)                 not null comment '주문 타입 => 0:plan, 1: panel, 2: reward',
@@ -282,7 +282,7 @@ CREATE OR REPLACE TABLE UsersPaymentRequest
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',
-    PRIMARY KEY (UserCode, registerCode),
+    PRIMARY KEY (UserCode, orderCode),
     constraint fk_payment_request_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 

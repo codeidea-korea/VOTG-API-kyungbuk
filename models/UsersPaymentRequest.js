@@ -28,8 +28,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     registerCode: {
       type: DataTypes.STRING(255),
-      allowNull: false,
-      primaryKey: true,
+      allowNull: true,
       comment: "카드 고유 식별번호"
     },
     orderType: {
@@ -40,6 +39,7 @@ module.exports = function(sequelize, DataTypes) {
     orderCode: {
       type: DataTypes.STRING(255),
       allowNull: false,
+      primaryKey: true,
       comment: "주문 고유 식별번호=merchant_uid"
     },
     orderName: {
@@ -64,7 +64,7 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "UserCode" },
-          { name: "registerCode" },
+          { name: "orderCode" },
         ]
       },
     ]
