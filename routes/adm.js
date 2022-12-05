@@ -180,4 +180,66 @@ router.delete('/account/delete', async (req, res) => {
     }
 })
 
+/**
+ *
+ *
+ * Payment DATA LSIT
+ *
+ *
+ */
+
+router.post('/pay/resultList', async (req, res) => {
+    try {
+        // const { param_code, param_name } = req.params
+        const { UserCode } = req.body
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
+        })
+
+        // console.log('User', User)
+        // debug.query('User', User)
+
+        if (User.mode < 2) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'Not Allow.',
+                payload: null,
+            })
+        }
+
+        const resultList = await DB.UsersPaymentRequest.findAll({
+            order: [['createdAt', 'ASC']],
+        })
+
+        let userList = await Promise.all(
+            resultList.map((selectedResult, sIndex) => {
+                const User = DB.Users.findOne({
+                    where: { code: Buffer.from(selectedResult.UserCode, 'hex') },
+                    attributes: { exclude: ['UserCode', 'password'] },
+                })
+                return User
+            }),
+        )
+
+        const newList = resultList.map((v, vIndex) => {
+            return { ...v, ...userList[vIndex] }
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'ok',
+            payload: { UserData: userList, PayResult: resultList },
+        })
+    } catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router
