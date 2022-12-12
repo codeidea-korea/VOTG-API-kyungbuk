@@ -102,9 +102,9 @@ router.post('/KGCertify', async (req, res) => {
                 email: certificationsInfo.phone,
                 password: hashedPassword,
                 nickname: certificationsInfo.name,
-                mode: 0, // '0:사용자, 1:편집자, 2:관리자, 3:개발자',
+                mode: 1, // '0:설문, 1:패널, 2:관리자, 3:개발자',
                 status: 3, // '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
-                type: 0, // '0:일반, 1:학생, 2:개인, 3:법인',
+                type: 0, // 0:Free, 1:Basic, 2:Pro, 3:Develop
             })
             var cerifiedAt = new Date(1000 * 1660184380).getFullYear()
             var birthday = new Date(1000 * 1660184380).getFullYear()

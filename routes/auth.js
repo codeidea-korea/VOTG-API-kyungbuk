@@ -592,4 +592,77 @@ router.post('/verifyNumberSENS', async (req, res) => {
     }
 })
 
+/* Just Routing */
+router.post('/KGCertify', async (req, res) => {
+    try {
+        //TEST imp_uid: imp_942336243755
+        const { imp_uid } = req.body // request의 body에서 imp_uid 추출
+        //REST API Key: 1538504562143613
+        //REST API Secret
+        /*
+            Bsq53gJBbgykdlt4BIX1FMiI7vakL3uAwvVPIE5xEwUupnhGyNEUSqB69D4iAVTeS6GpM4LEqjknz0zq
+        */
+        debug.axios('imp_uid', imp_uid)
+        const getToken = await axios({
+            url: 'https://api.iamport.kr/users/getToken',
+            method: 'post', // POST method
+            headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
+            data: {
+                imp_key: '1538504562143613', // REST API키
+                imp_secret:
+                    'Bsq53gJBbgykdlt4BIX1FMiI7vakL3uAwvVPIE5xEwUupnhGyNEUSqB69D4iAVTeS6GpM4LEqjknz0zq', // REST API Secret
+            },
+        })
+        const { access_token } = getToken.data.response
+        const getCertifications = await axios({
+            url: `https://api.iamport.kr/certifications/${imp_uid}`, // imp_uid 전달
+            method: 'get', // GET method
+            headers: { Authorization: access_token }, // 인증 토큰 Authorization header에 추가
+        })
+        const certificationsInfo = getCertifications.data.response
+        console.log('certificationsInfo', certificationsInfo)
+        const exUser = await DB.Users.findOne({
+            where: {
+                phone: certificationsInfo.phone,
+            },
+        })
+        if (exUser) {
+            const acsTK = jwt.sign({ phone: exUser.phone, email: exUser.email }, jwtSecret, {
+                expiresIn: expiresInAcsTK,
+            })
+            const refTK = jwt.sign(
+                {
+                    code: exUser.code,
+                },
+                jwtSecret,
+                {
+                    expiresIn: expiresInRefTK, // 1 Day
+                },
+            )
+
+            return res.status(202).json({
+                isSuccess: true,
+                code: 202,
+                msg: 'Exist User',
+                payload: {
+                    accessToken: acsTK,
+                    refreshToken: refTK,
+                },
+            })
+        } else {
+            return res.status(202).json({
+                isSuccess: true,
+                code: 201,
+                msg: 'ok',
+                payload: {
+                    ...getCertifications.data.response,
+                },
+            })
+        }
+    } catch (error) {
+        console.log('KGCertify', error)
+        res.status(400).json({ result: '0', error: error })
+    }
+})
+
 module.exports = router

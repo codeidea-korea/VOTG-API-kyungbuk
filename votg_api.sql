@@ -63,7 +63,7 @@ CREATE OR REPLACE TABLE Users
     email       varchar(50)                             not null comment '이메일=아이디',
     password    varchar(100)                            not null comment '비밀번호',
     nickname    varchar(50)                             not null comment '닉네임',
-    mode        int         default 0                   not null comment '0:커스터머, 1:조직맴버, 2:관리자, 3:개발자',
+    mode        int         default 0                   not null comment '0:일반사용자, 1:패널가입, 2:관리자, 3:개발자',
 	status      int         default 0                   not null comment '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
 	type        int         default 0                   not null comment '0:Free, 1:Basic, 2:Pro, 3:Develop',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
