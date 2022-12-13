@@ -173,7 +173,7 @@ router.post('/user', async (req, res, next) => {
         const token = req.body.accessToken
         const decoded = jwt.verify(token, jwtSecret)
         const { phone, email } = decoded
-        // console.log(decoded)
+        console.log(decoded)
         const user = await DB.Users.findOne({
             where: {
                 phone: phone,
@@ -181,6 +181,7 @@ router.post('/user', async (req, res, next) => {
             },
             attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'type'],
         })
+        console.log('user', user)
         const detail = await DB.UsersDetail.findOne({
             where: {
                 UserCode: user.code,
@@ -592,8 +593,16 @@ router.post('/verifyNumberSENS', async (req, res) => {
     }
 })
 
+/**
+ *
+ *
+ * PANEL AUTH LINE
+ *
+ *
+ */
+
 /* Just Routing */
-router.post('/KGCertify', async (req, res) => {
+router.post('/PNCertify', async (req, res) => {
     try {
         //TEST imp_uid: imp_942336243755
         const { imp_uid } = req.body // request의 body에서 imp_uid 추출
@@ -621,18 +630,19 @@ router.post('/KGCertify', async (req, res) => {
         })
         const certificationsInfo = getCertifications.data.response
         console.log('certificationsInfo', certificationsInfo)
-        const exUser = await DB.Users.findOne({
+        const exPanel = await DB.Panels.findOne({
             where: {
                 phone: certificationsInfo.phone,
             },
         })
-        if (exUser) {
-            const acsTK = jwt.sign({ phone: exUser.phone, email: exUser.email }, jwtSecret, {
+        console.log('exPanel', exPanel)
+        if (exPanel) {
+            const acsTK = jwt.sign({ phone: exPanel.phone, email: exPanel.email }, jwtSecret, {
                 expiresIn: expiresInAcsTK,
             })
             const refTK = jwt.sign(
                 {
-                    code: exUser.code,
+                    code: exPanel.code,
                 },
                 jwtSecret,
                 {
@@ -660,8 +670,282 @@ router.post('/KGCertify', async (req, res) => {
             })
         }
     } catch (error) {
-        console.log('KGCertify', error)
+        console.log('PNCertify', error)
         res.status(400).json({ result: '0', error: error })
+    }
+})
+
+/* Just Routing */
+router.post('/pn/login', isNotLoggedIn, async (req, res, next) => {
+    passport.authenticate('panel', (err, panel, info) => {
+        if (err) {
+            console.error(err)
+            return next(err)
+        }
+        if (info) {
+            return res.status(401).send(info.reason)
+        }
+
+        debug.server('/pn/login : user ', panel.dataValues)
+
+        return req.login(panel, async (loginErr) => {
+            if (loginErr) {
+                console.error(loginErr)
+                return next(loginErr)
+            }
+            const acsTK = jwt.sign({ phone: panel.phone, email: panel.email }, jwtSecret, {
+                expiresIn: expiresInAcsTK,
+            })
+            const refTK = jwt.sign(
+                {
+                    code: panel.code,
+                },
+                jwtSecret,
+                {
+                    expiresIn: expiresInRefTK, // 1 Day
+                },
+            )
+            return res.status(200).json({
+                isSuccess: true,
+                code: 200,
+                msg: 'ok',
+                payload: {
+                    accessToken: acsTK,
+                    refreshToken: refTK,
+                },
+            })
+        })
+    })(req, res, next)
+})
+
+router.post('/pn/signup', isNotLoggedIn, async (req, res, next) => {
+    try {
+        const exPanel = await DB.Panels.findOne({
+            where: {
+                email: req.body.email,
+            },
+        })
+        if (exPanel) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'exist',
+                payload: exPanel,
+            })
+        }
+        const hashedPassword = await bcrypt.hash(req.body.password, 12)
+        const createUUID = uuid().toString().replace(/-/g, '')
+        const panel = await DB.Panels.create({
+            code: Buffer.from(createUUID, 'hex'),
+            name: req.body.name,
+            phone: req.body.phone,
+            email: req.body.email,
+            password: hashedPassword,
+            nickname: req.body.email.substring(0, req.body.email.indexOf('@')),
+            mode: 0, // '0:사용자, 1:편집자, 2:관리자, 3:개발자',
+            status: 3, // '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
+            type: 0, // '0:일반, 1:학생, 2:개인, 3:법인',
+        })
+        const panelDetail = await DB.PanelsDetail.create({
+            PanelCode: Buffer.from(createUUID, 'hex'),
+            profile: req.body.profile || null,
+            arg_phone: req.body.mailing ? 1 : 0,
+            arg_email: req.body.mailing ? 1 : 0,
+            birthday: req.body.birthday || null,
+            age_range: req.body.age_range || null,
+            gender: req.body.gender || null,
+        })
+
+        const acsTK = jwt.sign({ phone: panel.phone, email: panel.email }, jwtSecret, {
+            expiresIn: expiresInAcsTK,
+        })
+        const refTK = jwt.sign(
+            {
+                code: panel.code,
+            },
+            jwtSecret,
+            {
+                expiresIn: expiresInRefTK,
+            },
+        )
+        res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'ok',
+            payload: {
+                accessToken: acsTK,
+                refreshToken: refTK,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/panel', async (req, res, next) => {
+    try {
+        const token = req.body.accessToken
+        const decoded = jwt.verify(token, jwtSecret)
+        const { phone, email } = decoded
+        // console.log(decoded)
+        const panel = await DB.Panels.findOne({
+            where: {
+                phone: phone,
+                email: email,
+            },
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'type'],
+        })
+        const detail = await DB.PanelsDetail.findOne({
+            where: {
+                PanelCode: panel.code,
+            },
+            attributes: [
+                'profile',
+                'arg_phone',
+                'arg_email',
+                'birthday',
+                'age_range',
+                'gender',
+                'address_road',
+                'address_detail',
+                'address_zip',
+            ],
+        })
+
+        const panelData = {
+            ...panel.dataValues,
+            ...detail.dataValues,
+        }
+        // console.log(user.code)
+        debug.server('/panel ', panelData)
+
+        res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'ok',
+            payload: panelData,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/panel/verify', async (req, res, next) => {
+    try {
+        const token = req.body.refreshToken
+        const decoded = jwt.verify(token, jwtSecret)
+        const { code } = decoded
+        const panel = await DB.Panels.findOne({
+            where: {
+                code: Buffer.from(code, 'hex'),
+            },
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode'],
+        })
+        debug.server('/user/verify ', panel.dataValues)
+
+        return req.login(panel, async (loginErr) => {
+            if (loginErr) {
+                console.error(loginErr)
+                return next(loginErr)
+            }
+            const acsTK = jwt.sign({ phone: panel.phone, email: panel.email }, jwtSecret, {
+                expiresIn: expiresInAcsTK,
+            })
+            return res.status(200).json({
+                isSuccess: true,
+                code: 200,
+                msg: 'ok',
+                payload: {
+                    accessToken: acsTK,
+                },
+            })
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/panel/email', async (req, res, next) => {
+    try {
+        const exPanel = await DB.Panels.findOne({
+            where: {
+                email: req.query.email,
+            },
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode'],
+        })
+        if (exPanel) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'exist',
+                payload: exPanel.email,
+            })
+        }
+        res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'no exist',
+            payload: exPanel,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/panel/phone', async (req, res, next) => {
+    try {
+        const exPanel = await DB.Panels.findOne({
+            where: {
+                phone: req.query.phoneNumber,
+            },
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode'],
+        })
+        if (exPanel) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'exist',
+                payload: exPanel.phone,
+            })
+        }
+        res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'no exist',
+            payload: exPanel,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
     }
 })
 

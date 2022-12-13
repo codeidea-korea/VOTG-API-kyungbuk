@@ -19,7 +19,7 @@ module.exports = function(sequelize, DataTypes) {
     status: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      comment: "0:취소(회색), 1:승인(파랑), 2:실패(빨강), 3:오류(노랑)"
+      comment: "0:시도(회색), 1:승인(파랑), 2:실패(빨강), 3:취소(노랑)"
     },
     billingUid: {
       type: DataTypes.STRING(255),

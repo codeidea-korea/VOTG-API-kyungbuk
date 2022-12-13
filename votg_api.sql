@@ -372,5 +372,63 @@ CREATE OR REPLACE TABLE ServicesCustomers
 
 
 
+DROP TABLE Panels;
+CREATE OR REPLACE TABLE Panels
+(
+    id          int         auto_increment primary key,
+    code        binary(16)                              not null comment '사용자 고유식별자',
+    name        varchar(50)                             not null comment '이름',
+	phone       varchar(50)                             not null comment '휴대전화',
+    email       varchar(50)                             not null comment '이메일=아이디',
+    password    varchar(100)                            not null comment '비밀번호',
+    nickname    varchar(50)                             not null comment '닉네임',
+    mode        int         default 0                   not null comment '0:일반 사용자, 1:패널가입, 2:관리자, 3:개발자',
+	status      int         default 0                   not null comment '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
+	type        int         default 0                   not null comment '0:Free, 1:Basic, 2:Pro, 3:Develop',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp   on update current_timestamp()   null comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    constraint email unique (email),
+    constraint code unique (code)
+) charset = utf8mb3;
+
+
+DROP TABLE PanelsDetail;
+CREATE OR REPLACE TABLE PanelsDetail
+(
+    id          int         auto_increment primary key,
+    PanelCode    binary(16)                                  null comment '사용자 고유식별자',
+    profile     varchar(255)                                null comment '프로필 사진',
+    arg_phone   tinyint(1)  default 0                   not null comment '수단별 수신동의 - 모바일',
+    arg_email   tinyint(1)  default 0                   not null comment '수단별 수신동의 - 메일',
+    birthday    date                                        null comment '생년월일 yyyy-mm-dd',
+    age_range   int                                         null comment '생년월일 yyyy-mm-dd',
+    gender      int                                         null comment '0: 생략, 1: 남성, 2: 여성,',
+    address_road int                                        null comment '도로면 주소 전체',
+    address_detail int                                      null comment '상세 주소',
+    address_zip int                                         null comment '우편번호',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    constraint PanelCode unique (PanelCode),
+    constraint fk_detail_panels_code foreign key (PanelCode) references Panels (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
+
+DROP TABLE PanelsSyncSNS;
+CREATE OR REPLACE TABLE PanelsSyncSNS
+(
+    PanelCode    binary(16)                                  null comment '사용자 고유식별자',
+	auth        int         default 0                   not null comment '0:일반, 1:애플, 2:구글, 3:카카오, 4:네이버',
+    identify    varchar(255)                                null comment '소셜 인증 고유 식별자',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (PanelCode, auth),
+    constraint fk_sync_panels_code foreign key (PanelCode) references Panels (code) on update cascade on delete cascade
+) charset = utf8mb3;
+
+
+
 
 

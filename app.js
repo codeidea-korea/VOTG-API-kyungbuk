@@ -123,6 +123,7 @@ app.use(session(sessionOption))
 app.use(passport.initialize())
 app.use(passport.session())
 passportConfig(passport)
+// passportConfigPN(passport)
 
 /* API Router Directory */
 app.use('/', RouterIndex)
