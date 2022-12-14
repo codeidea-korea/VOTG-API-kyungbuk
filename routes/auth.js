@@ -637,27 +637,24 @@ router.post('/PNCertify', async (req, res) => {
         })
         console.log('exPanel', exPanel)
         if (exPanel) {
-            const acsTK = jwt.sign({ phone: exPanel.phone, email: exPanel.email }, jwtSecret, {
-                expiresIn: expiresInAcsTK,
-            })
-            const refTK = jwt.sign(
-                {
-                    code: exPanel.code,
-                },
-                jwtSecret,
-                {
-                    expiresIn: expiresInRefTK, // 1 Day
-                },
-            )
+            // const acsTK = jwt.sign({ phone: exPanel.phone, email: exPanel.email }, jwtSecret, {
+            //     expiresIn: expiresInAcsTK,
+            // })
+            // const refTK = jwt.sign(
+            //     {
+            //         code: exPanel.code,
+            //     },
+            //     jwtSecret,
+            //     {
+            //         expiresIn: expiresInRefTK, // 1 Day
+            //     },
+            // )
 
             return res.status(202).json({
                 isSuccess: true,
                 code: 202,
                 msg: 'Exist User',
-                payload: {
-                    accessToken: acsTK,
-                    refreshToken: refTK,
-                },
+                payload: { user: 'exist' },
             })
         } else {
             return res.status(202).json({

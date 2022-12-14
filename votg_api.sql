@@ -428,7 +428,76 @@ CREATE OR REPLACE TABLE PanelsSyncSNS
     constraint fk_sync_panels_code foreign key (PanelCode) references Panels (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+DROP TABLE PanelsQuestionList;
+CREATE OR REPLACE TABLE PanelsQuestionList
+(
+    QuestionCode    varchar(255)                        not null comment '사용자 고유식별자',
+    title       varchar(255)                            not null comment '질문',
+    description varchar(255) default null                   null comment '질문 설명',
+    type        int         default 0                   not null comment '0:객관식사각형, 1:객관식리스트, 2:객관식육각형, 3:주관식',
+    item        JSON        default '[]'                not null comment '설문 질문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (QuestionCode)
+#     constraint fk_sync_panels_code foreign key (QuestionCode) references Panels (code) on update cascade on delete cascade
+) charset = utf8mb3;
 
 
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0001', '성별을 선택해주세요.','', 0,
+                                                                          '[{ "index": 0, "text": "남성", "count": 0},{ "index": 1, "text": "여성", "count": 1 }]');
 
 
+# ['기독교', '불교', '원불교', '이슬람교', '천주교', '무교', '그외']
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0002', '종교를 선택해주세요.','', 2,
+                                                                          '[{ "index": 0, "text": "기독교", "count": 0},{ "index": 1, "text": "불교", "count": 1 },{ "index": 2, "text": "원불교", "count": 2},{ "index": 3, "text": "이슬람교", "count": 3 },{ "index": 4, "text": "천주교", "count": 4},{ "index": 5, "text": "무교", "count": 5 },{ "index": 6, "text": "그외", "count": 6 }]');
+
+# { text: '월 평균 200만원 이하', count: 0 },
+#     { text: '월 평균 400만원 이하', count: 10 },
+#     { text: '월 평균 600만원 이하', count: 10 },
+#     { text: '월 평균 800만원 이하', count: 10 },
+#     { text: '월 평균 800만원 초과', count: 10 },
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0003', '소득을 선택해주세요.','', 2,
+                                                                          '[{ "index": 0, "text": "월 평균 200만원 이하", "count": 0},{ "index": 1, "text": "월 평균 400만원 이하", "count": 1 },{ "index": 2, "text": "월 평균 600만원 이하", "count": 2},{ "index": 3, "text": "월 평균 800만원 이하", "count": 3 },{ "index": 4, "text": "월 평균 800만원 초과", "count": 4}]');
+
+# 주거지 계약 형태를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0004', '주거 형태를 선택해주세요.','', 2, '[]');
+
+# 주거지 계약 형태를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0005', '함께 거주하는 인원을 선택해주세요.','', 1, '[]');
+
+# 함께 거주하는 인원을 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0006', '함께 거주하는 인원을 선택해주세요.','', 1, '[]');
+
+# 함께 거주하는 구성원을 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0007', '함께 거주하는 구성원을 선택해주세요.','', 2, '[]');
+
+# 혼인 여부를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0008', '혼인 여부를 선택해주세요.','', 1, '[]');
+
+# 자녀 수를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0009', '자녀 수를 선택해주세요.','', 1, '[]');
+
+# 반려동물 여부를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0010', '반려동물 여부를 선택해주세요.','', 0, '[]');
+
+# 취미를 입력해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0011', '취미를 입력해주세요.','', 3, '[]');
+
+# 취미 활동 시간을 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0012', '취미 활동 시간을 선택해주세요.','', 3, '[]');
+
+
+DROP TABLE PanelsQuestionAnswer;
+CREATE OR REPLACE TABLE PanelsQuestionAnswer
+(
+    PanelCode    binary(16)                                 null comment '패널 고유식별자',
+	QuestionCode varchar(255)                             not null comment '답변에 고유넘버',
+    answer      JSON                                    not null comment '변경된 설문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (PanelCode, QuestionCode),
+    constraint fk_answer_panels_code foreign key (PanelCode) references Panels (code) on update cascade on delete cascade,
+    constraint fk_answer_question_code foreign key (QuestionCode) references PanelsQuestionList (QuestionCode) on update cascade on delete cascade
+) charset = utf8mb3;

@@ -3,6 +3,8 @@ var _Organizations = require("./Organizations");
 var _OrganizationsMembers = require("./OrganizationsMembers");
 var _Panels = require("./Panels");
 var _PanelsDetail = require("./PanelsDetail");
+var _PanelsQuestionAnswer = require("./PanelsQuestionAnswer");
+var _PanelsQuestionList = require("./PanelsQuestionList");
 var _PanelsSyncSNS = require("./PanelsSyncSNS");
 var _Services = require("./Services");
 var _ServicesCustomers = require("./ServicesCustomers");
@@ -25,6 +27,8 @@ function initModels(sequelize) {
   var OrganizationsMembers = _OrganizationsMembers(sequelize, DataTypes);
   var Panels = _Panels(sequelize, DataTypes);
   var PanelsDetail = _PanelsDetail(sequelize, DataTypes);
+  var PanelsQuestionAnswer = _PanelsQuestionAnswer(sequelize, DataTypes);
+  var PanelsQuestionList = _PanelsQuestionList(sequelize, DataTypes);
   var PanelsSyncSNS = _PanelsSyncSNS(sequelize, DataTypes);
   var Services = _Services(sequelize, DataTypes);
   var ServicesCustomers = _ServicesCustomers(sequelize, DataTypes);
@@ -43,6 +47,8 @@ function initModels(sequelize) {
   var UsersUploadLogs = _UsersUploadLogs(sequelize, DataTypes);
 
   Organizations.belongsToMany(Users, { as: 'UserCode_Users', through: OrganizationsMembers, foreignKey: "OrgCode", otherKey: "UserCode" });
+  Panels.belongsToMany(PanelsQuestionList, { as: 'QuestionCode_PanelsQuestionLists', through: PanelsQuestionAnswer, foreignKey: "PanelCode", otherKey: "QuestionCode" });
+  PanelsQuestionList.belongsToMany(Panels, { as: 'PanelCode_Panels', through: PanelsQuestionAnswer, foreignKey: "QuestionCode", otherKey: "PanelCode" });
   Services.belongsToMany(Users, { as: 'UserCode_Users_ServicesCustomers', through: ServicesCustomers, foreignKey: "ServiceCode", otherKey: "UserCode" });
   Users.belongsToMany(Organizations, { as: 'OrgCode_Organizations', through: OrganizationsMembers, foreignKey: "UserCode", otherKey: "OrgCode" });
   Users.belongsToMany(Services, { as: 'ServiceCode_Services', through: ServicesCustomers, foreignKey: "UserCode", otherKey: "ServiceCode" });
@@ -50,8 +56,12 @@ function initModels(sequelize) {
   Organizations.hasMany(OrganizationsMembers, { as: "OrganizationsMembers", foreignKey: "OrgCode"});
   PanelsDetail.belongsTo(Panels, { as: "PanelCode_Panel", foreignKey: "PanelCode"});
   Panels.hasOne(PanelsDetail, { as: "PanelsDetail", foreignKey: "PanelCode"});
+  PanelsQuestionAnswer.belongsTo(Panels, { as: "PanelCode_Panel", foreignKey: "PanelCode"});
+  Panels.hasMany(PanelsQuestionAnswer, { as: "PanelsQuestionAnswers", foreignKey: "PanelCode"});
   PanelsSyncSNS.belongsTo(Panels, { as: "PanelCode_Panel", foreignKey: "PanelCode"});
   Panels.hasMany(PanelsSyncSNS, { as: "PanelsSyncSNs", foreignKey: "PanelCode"});
+  PanelsQuestionAnswer.belongsTo(PanelsQuestionList, { as: "QuestionCode_PanelsQuestionList", foreignKey: "QuestionCode"});
+  PanelsQuestionList.hasMany(PanelsQuestionAnswer, { as: "PanelsQuestionAnswers", foreignKey: "QuestionCode"});
   ServicesCustomers.belongsTo(Services, { as: "ServiceCode_Service", foreignKey: "ServiceCode"});
   Services.hasMany(ServicesCustomers, { as: "ServicesCustomers", foreignKey: "ServiceCode"});
   Organizations.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
@@ -86,6 +96,8 @@ function initModels(sequelize) {
     OrganizationsMembers,
     Panels,
     PanelsDetail,
+    PanelsQuestionAnswer,
+    PanelsQuestionList,
     PanelsSyncSNS,
     Services,
     ServicesCustomers,
