@@ -488,6 +488,29 @@ INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALU
 INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0012', '취미 활동 시간을 선택해주세요.','', 3, '[]');
 
 
+## PAGE 3
+# 자주 사용하는 교통 수단을 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0013', '자주 사용하는 교통 수단을 선택해주세요.','', 0, '[]');
+
+# 면허 여부를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0014', '면허 여부를 선택해주세요.','', 0, '[]');
+
+# 보유한 차량 종류를 선택해주세요. (중복 선택 가능)
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0015', '보유한 차량 종류를 선택해주세요.(중복 선택 가능)','', 1, '[]');
+
+# 통신사를 선택해주세요.
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0016', '통신사를 선택해주세요.','', 2, '[]');
+
+# 월 통신비를 선택해주세요. (핸드폰비 포함)
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0017', '월 통신비를 선택해주세요. (핸드폰비 포함)','', 1, '[]');
+
+# 월 통신비를 선택해주세요. (핸드폰비 포함)
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0018', '직업군을 선택해주세요.','', 1, '[]');
+
+# 고용 형태를 입력해주세요. (중복 선택 가능)
+INSERT INTO PanelsQuestionList (QuestionCode, title, description,type,item) VALUES ('Q-0019', '고용 형태를 입력해주세요. (중복 선택 가능)','', 2, '[]');
+
+
 DROP TABLE PanelsQuestionAnswer;
 CREATE OR REPLACE TABLE PanelsQuestionAnswer
 (
