@@ -42,6 +42,7 @@ const RouterGift = require('./routes/gift')
 const RouterRequest = require('./routes/request')
 const RouterAdmin = require('./routes/adm')
 const RouterPanel = require('./routes/panel')
+const RouterBoard = require('./routes/board')
 
 /* Mode & Debug Url Config */
 const prodChecker = process.env.NODE_ENV.trim().toLowerCase() === 'production'
@@ -139,6 +140,7 @@ app.use('/gift', RouterGift)
 app.use('/request', RouterRequest)
 app.use('/adm', RouterAdmin)
 app.use('/panel', RouterPanel)
+app.use('/board', RouterBoard)
 
 /* Url Router End-point Setting */
 app.get('*', (req, res, next) => {

@@ -524,3 +524,22 @@ CREATE OR REPLACE TABLE PanelsQuestionAnswer
     constraint fk_answer_panels_code foreign key (PanelCode) references Panels (code) on update cascade on delete cascade,
     constraint fk_answer_question_code foreign key (QuestionCode) references PanelsQuestionList (QuestionCode) on update cascade on delete cascade
 ) charset = utf8mb3;
+
+
+# 게시판
+DROP TABLE BoardNotice;
+CREATE OR REPLACE TABLE BoardNotice
+(
+    id          int                                     auto_increment primary key,
+    code        varchar(255)                              not null comment '글 고유식별자',
+    title       varchar(255)                             not null comment '이름',
+    contents    varchar(255)                             not null comment '내용',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp   on update current_timestamp()   null comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    OwnerCode   binary(16)                                  null comment '사용자 고유식별자',
+    constraint code unique (code),
+    constraint fk_board_notice_users_code foreign key (OwnerCode) references Users (code) on update cascade on delete set null
+) charset = utf8mb3;
+
+# Board Notice Example.
