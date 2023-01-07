@@ -655,4 +655,31 @@ router.post('/payBilling', async (req, res) => {
     }
 })
 
+router.post('/request/list', async (req, res) => {
+    try {
+        const { UserCode } = req.body
+        const exRequest = await DB.UsersPaymentRequest.findAll({
+            where: {
+                UserCode: Buffer.from(UserCode, 'hex'),
+            },
+            // attributes: { exclude: ['password'] },
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Paymetn Request List',
+            payload: exRequest,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router
