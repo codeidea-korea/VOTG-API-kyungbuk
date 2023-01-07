@@ -184,18 +184,41 @@ router.post('/survey/save', async (req, res) => {
             thumbnail,
             fileCode,
         } = req.body
-        const createOnlineSurvey = await DB.UsersSurveyOnlineLayouts.create({
-            UserCode: Buffer.from(UserCode, 'hex'),
-            surveyCode: surveyCode,
-            status: 0,
-            surveyType: surveyType,
-            survey: surveyJson.toString(),
-            sendType: sendType,
-            sendContact: sendContact.toString(),
-            sendURL: sendURL,
-            thumbnail: thumbnail,
-            fileCode: fileCode,
+        const exSurvey = await DB.UsersSurveyOnlineLayouts.findAll({
+            where: {
+                surveyCode: surveyCode,
+            },
+            attributes: ['survey'],
         })
+        console.log('exSurve Length', exSurvey.length)
+        if (exSurvey.length === 0) {
+            const createOnlineSurvey = await DB.UsersSurveyOnlineLayouts.create({
+                UserCode: Buffer.from(UserCode, 'hex'),
+                surveyCode: surveyCode,
+                status: 0,
+                surveyType: surveyType,
+                survey: surveyJson.toString(),
+                sendType: sendType,
+                sendContact: sendContact.toString(),
+                sendURL: sendURL,
+                thumbnail: thumbnail,
+                fileCode: fileCode,
+            })
+        } else {
+            const updateOnlineSurvey = await DB.UsersSurveyOnlineLayouts.update(
+                {
+                    // status: 0,
+                    // surveyType: surveyType,
+                    survey: surveyJson.toString(),
+                    sendType: sendType,
+                    sendContact: sendContact.toString(),
+                    sendURL: sendURL,
+                    thumbnail: thumbnail,
+                    fileCode: fileCode,
+                },
+                { where: { surveyCode: surveyCode } },
+            )
+        }
 
         return res.status(200).json({
             isSuccess: true,
