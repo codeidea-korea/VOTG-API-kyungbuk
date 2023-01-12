@@ -772,6 +772,182 @@ router.post('/survey/distribute/change', async (req, res) => {
     }
 })
 
+router.post('/survey/distribute/change/adm', async (req, res) => {
+    // console.log(req)
+    try {
+        const {
+            UserCode,
+            surveyCode,
+            // surveyType,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+            fileCode,
+        } = req.body
+
+        // console.log('UsersSurveyOnlineLayouts - Update', surveyCode)
+        const updateSurveyLoineLayouts = await DB.UsersSurveyOnlineLayouts.update(
+            {
+                status: 1,
+                // surveyType: surveyType,
+                survey: surveyJson.toString(),
+                sendType: sendType,
+                sendContact: sendContact.toString(),
+                sendURL: sendURL,
+                thumbnail: thumbnail,
+                fileCode: fileCode,
+            },
+            { where: { surveyCode: surveyCode } },
+        )
+        //SENS
+        const contactJson = JSON.parse(sendContact)
+        // console.log('contactJson', contactJson)
+        if (contactJson.phoneNumbers !== undefined) {
+            contactJson.phoneNumbers.map((phone, pIndex) => {
+                // console.log('phoneNumbers', phone)
+
+                if (sendType === 0) {
+                    const date = Date.now().toString()
+                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmac.update(method)
+                    hmac.update(space)
+                    hmac.update(url2)
+                    hmac.update(newLine)
+                    hmac.update(date)
+                    hmac.update(newLine)
+                    hmac.update(NCP_accessKey)
+                    const hash = hmac.finalize()
+                    const signature = hash.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: url,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signature,
+                        },
+                        data: {
+                            type: 'LMS',
+                            contentType: 'COMM',
+                            countryCode: '82',
+                            from: NCP_fromNumber,
+                            // content: `인증번호\n[${verifyCode}]를 입력해주세요.`,
+                            content: `소상공인시장진흥공단 수혜업체 만족도조사\n\n안녕하세요 소상공인시장진흥공단은 소상공인 발전을 위하여 만족도 조사를 실시하고 있으니 꼭 참여 부탁드립니다.\n(조사는 에이치앤컨설팅과 뷰즈온더고서베이를 통해 수행됩니다)\n\nhttps://survey.gift${sendURL}`,
+                            // content: `[뷰즈온더고]\n테스터 참여하기\n접속링크:https://viewsonthego.com/auth/login\n아이디:tester@votg.com\n비밀번호:tester00!\n\n설문조사 응답바로가기\nhttps://survey.gift${sendURL}`,
+                            messages: [
+                                {
+                                    to: `${phone}`,
+                                },
+                            ],
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.response.data)
+                            // return res.status(error.response.status).json({
+                            //     isSuccess: false,
+                            //     code: error.response.status,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error.response.data,
+                            // })
+                        })
+                } else if (sendType === 1) {
+                    const date = Date.now().toString()
+                    const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmacKakao.update(method)
+                    hmacKakao.update(space)
+                    hmacKakao.update(urlKakao2)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(date)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(NCP_accessKey)
+                    const hashKakao = hmacKakao.finalize()
+                    const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: urlKakao,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signatureKakao,
+                        },
+                        data: {
+                            plusFriendId: '@뷰즈온더고',
+                            templateCode: 'votgalim01',
+                            messages: [
+                                {
+                                    countryCode: '82',
+                                    to: `${phone}`,
+                                    content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
+                                    buttons: [
+                                        {
+                                            type: 'WL',
+                                            name: '설문조사 바로가기',
+                                            linkMobile: `https://survey.gift${sendURL}`,
+                                            linkPc: `https://survey.gift${sendURL}`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.data)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                }
+            })
+        }
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Change & Dstribute Success',
+            payload: {
+                surveyCode,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 router.get('/survey/loaded', async (req, res) => {
     // console.log(req)
     try {
