@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
     */
 router.post('/issued/pub', async (req, res) => {
     try {
-        const { phoneNumber } = req.body
+        const { phoneNumber, productNumber } = req.body
 
         const curDate = moment().format('YYYYMMDD')
         const reqData = {
@@ -59,9 +59,9 @@ router.post('/issued/pub', async (req, res) => {
             SITE_ID: process.env.DAU_SITE_ID,
             COOPER_ID: process.env.DAU_COOPER_ID,
             COOPER_PW: process.env.DAU_COOPER_PW,
-            NO_REQ: '222983',
+            NO_REQ: productNumber,
             COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
-            ISSUE_COUNT: '1',
+            ISSUE_COUNT: 1,
             CALL_CTN: process.env.DAU_CALL_CTN,
             SENDER: '로코모션뷰 리워드 기프티콘',
             RCV_CTN: `${phoneNumber}`,
