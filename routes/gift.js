@@ -59,7 +59,7 @@ router.post('/issued/pub', async (req, res) => {
             SITE_ID: process.env.DAU_SITE_ID,
             COOPER_ID: process.env.DAU_COOPER_ID,
             COOPER_PW: process.env.DAU_COOPER_PW,
-            NO_REQ: '203449',
+            NO_REQ: '222983',
             COOPER_ORDER: `${moment().format('YYYYMMDDHHmmssSSS')}`,
             ISSUE_COUNT: '1',
             CALL_CTN: process.env.DAU_CALL_CTN,
