@@ -711,8 +711,8 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
                                         {
                                             type: 'WL',
                                             name: '설문조사 바로가기',
-                                            linkMobile: `https://survey.gift${sendURL}`,
-                                            linkPc: `https://survey.gift${sendURL}`,
+                                            linkMobile: `https://survey.gift${sendURL}?c=${resultIdentifyCode}`,
+                                            linkPc: `https://survey.gift${sendURL}?c=${resultIdentifyCode}`,
                                         },
                                     ],
                                 },
