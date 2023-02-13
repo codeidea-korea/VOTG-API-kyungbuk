@@ -837,7 +837,7 @@ router.get('/survey/answer/eachurl', async (req, res) => {
     try {
         var identifyCode = req.query.identifyCode
         var surveyCode = req.query.surveyCode
-        const exSurvey = await DB.SurveyOnlineAnswers.findOne({
+        const exSurvey = await DB.SurveyAnswersEachUrl.findOne({
             where: {
                 identifyCode: identifyCode,
                 surveyCode: surveyCode,
