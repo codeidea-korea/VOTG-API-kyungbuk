@@ -190,6 +190,10 @@ CREATE OR REPLACE TABLE SurveyAnswers
     PRIMARY KEY (IdentifyCode, fileCode)
 ) charset = utf8mb3;
 
+ALTER TABLE SurveyAnswers DROP phoneCode;
+ALTER TABLE SurveyAnswers ADD phoneCode varchar(255) not null default '' comment '응답자 휴대전화번호 식별자' after identifyCode;
+ALTER TABLE SurveyAnswers MODIFY COLUMN phoneCode varchar(255) after identifyCode;
+
 INSERT INTO SurveyOnlineAnswers (identifyCode, surveyCode, answer) VALUES (UNHEX(REPLACE(UUID(),'-','')), '1f0f6c8cd554da70c596680cf1ee044c', '[]');
 
 DELIMITER $$
@@ -204,11 +208,30 @@ END$$
 DELIMITER ;
 CALL SurveyOnlineAnswersInsert();
 
+DROP TABLE SurveyAnswersEachUrl;
+CREATE OR REPLACE TABLE SurveyAnswersEachUrl
+(
+    identifyCode    varchar(255)                                    null comment '응답자 고유식별자',
+    phoneCode    varchar(255)                                  null comment '응답자 휴대전화번호 식별자',
+	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
+    answer      JSON                                    not null comment '변경된 설문 데이터',
+	status      int         default 0                   not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (identifyCode, surveyCode)
+) charset = utf8mb3;
+
+ALTER TABLE SurveyAnswersEachUrl MODIFY COLUMN status int default 0 not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료';
+
+
 DROP TABLE SurveyOnlineAnswers;
 CREATE OR REPLACE TABLE SurveyOnlineAnswers
 (
     identifyCode    binary(16)                               null comment '응답자 고유식별자',
+    phoneCode   varchar(255) not null default '' comment '응답자 휴대전화번호 식별자',
 	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
+	status      int          not null default 0  comment '0:응답전, 1:응답중, 2:응답완료, 4:만료',
     answer      JSON                                    not null comment '변경된 설문 데이터',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
@@ -218,20 +241,10 @@ CREATE OR REPLACE TABLE SurveyOnlineAnswers
 
 SELECT * FROM SurveyOnlineAnswers WHERE surveyCode = '1f0f6c8cd554da70c596680cf1ee044c';
 
+ALTER TABLE SurveyOnlineAnswers ADD phoneCode varchar(255) not null default '' comment '응답자 휴대전화번호 식별자' after identifyCode;
+ALTER TABLE SurveyOnlineAnswers ADD status    int          not null default 0  comment '0:응답전, 1:응답중, 2:응답완료' after surveyCode;
+ALTER TABLE SurveyOnlineAnswers MODIFY COLUMN status int default 0 not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료';
 
-DROP TABLE SurveyAnswersEachUrl;
-CREATE OR REPLACE TABLE SurveyAnswersEachUrl
-(
-    identifyCode    varchar(255)                                    null comment '응답자 고유식별자',
-    phoneCode    varchar(255)                                  null comment '응답자 휴대전화번호 식별자',
-	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
-    answer      JSON                                    not null comment '변경된 설문 데이터',
-	status      int         default 0                   not null comment '0:응답전, 1:응답중, 2:응답완료',
-    createdAt   timestamp   default current_timestamp() not null comment '생성일',
-    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
-    deletedAt   timestamp                                   null comment '삭제일',
-    PRIMARY KEY (IdentifyCode, surveyCode)
-) charset = utf8mb3;
 
 
 DROP TABLE UsersPaymentCard;
@@ -286,7 +299,26 @@ CREATE OR REPLACE TABLE UsersPaymentRequest
     constraint fk_payment_request_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+ALTER TABLE UsersPaymentRequest DROP orderCount;
+ALTER TABLE UsersPaymentRequest ADD orderCount int not null default 0 comment '주문 개수' after amount;
+ALTER TABLE UsersPaymentRequest ADD issuedCount int not null default 0 comment '발행 개수' after orderCount;
 
+
+DROP TABLE UsersGiftSendLog;
+CREATE OR REPLACE TABLE UsersGiftSendLog
+(
+    UserCode                binary(16)                       null comment '사용자 고유식별자',
+	surveyCode              varchar(255)                 not null comment '서베이 생성 고유넘버',
+    orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid',
+    status                  varchar(255)                 not null comment '0:대기, 1:승인(파랑), 2:취소(노랑), 3:완료(초록)',
+    identifyCode            binary(16)                       null comment '응답자 고유식별자',
+    phoneCode               varchar(255)                 not null default '' comment '응답자 휴대전화번호 식별자',
+    createdAt   timestamp   default current_timestamp()  not null comment '생성일',
+    updatedAt   timestamp                                    null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                    null comment '삭제일',
+    PRIMARY KEY (UserCode,surveyCode, identifyCode),
+    constraint fk_payment_gift_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
 
 
 

@@ -8,6 +8,10 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       comment: "응답자 고유식별자"
     },
+    phoneCode: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
     fileCode: {
       type: DataTypes.STRING(255),
       allowNull: false,

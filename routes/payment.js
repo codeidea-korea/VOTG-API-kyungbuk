@@ -190,12 +190,14 @@ router.post('/callbackResult', async (req, res) => {
     }
 })
 
+//일반 카드결제
 router.post('/cachedBilling', async (req, res) => {
     try {
-        const { UserCode, orderCode, orderType, orderName, price } = req.body
+        const { UserCode, orderCode, orderType, orderName, price, orderCount } = req.body
         Cache.del(orderCode)
         Cache.put(orderCode, false, 1000 * 60 * 5)
         debug.axios('cachedBilling', req.body)
+        // debug.axios('orderCode', orderCode)
         const exOrderCode = await DB.UsersPaymentRequest.findAll({
             where: {
                 UserCode: Buffer.from(UserCode, 'hex'),
@@ -211,7 +213,25 @@ router.post('/cachedBilling', async (req, res) => {
                 orderCode: orderCode,
                 orderName: orderName,
                 amount: price,
+                orderCount: orderCount,
             })
+        } else {
+            await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 0,
+                    orderType: orderType,
+                    orderName: orderName,
+                    amount: price,
+                    orderCount: orderCount,
+                },
+                {
+                    where: {
+                        UserCode: Buffer.from(UserCode, 'hex'),
+                        orderCode: orderCode,
+                    },
+                },
+            )
         }
 
         return res.status(200).json({
@@ -517,10 +537,19 @@ router.post('/issueBilling', async (req, res) => {
     }
 })
 
+//등록된 카드 결제
 router.post('/payBilling', async (req, res) => {
     try {
-        const { UserCode, customerUid, cardNumber, merchantUid, orderType, orderName, price } =
-            req.body
+        const {
+            UserCode,
+            customerUid,
+            cardNumber,
+            merchantUid,
+            orderType,
+            orderName,
+            price,
+            orderCount,
+        } = req.body
 
         const CardInfo = await DB.UsersPaymentCard.findOne({
             where: { UserCode: Buffer.from(UserCode, 'hex'), cardNumber: cardNumber },
@@ -623,6 +652,7 @@ router.post('/payBilling', async (req, res) => {
                 orderCode: merchantUid,
                 orderName: orderName,
                 amount: price,
+                orderCount: orderCount,
             })
             return res.status(201).json({
                 isSuccess: true,
@@ -641,6 +671,7 @@ router.post('/payBilling', async (req, res) => {
                 orderCode: merchantUid,
                 orderName: orderName,
                 amount: price,
+                orderCount: orderCount,
             })
             return res.status(403).json({
                 isSuccess: false,
@@ -663,6 +694,7 @@ router.post('/request/list', async (req, res) => {
                 UserCode: Buffer.from(UserCode, 'hex'),
             },
             // attributes: { exclude: ['password'] },
+            order: [['createdAt', 'DESC']],
         })
 
         return res.status(200).json({

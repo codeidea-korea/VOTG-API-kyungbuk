@@ -8,9 +8,9 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     code: {
-      type: DataTypes.BLOB,
+      type: DataTypes.STRING(255),
       allowNull: false,
-      comment: "조직 고유식별자",
+      comment: "글 고유식별자",
       unique: "code"
     },
     title: {
@@ -21,7 +21,7 @@ module.exports = function(sequelize, DataTypes) {
     contents: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      comment: "접속주소"
+      comment: "내용"
     },
     OwnerCode: {
       type: DataTypes.BLOB,
@@ -30,8 +30,7 @@ module.exports = function(sequelize, DataTypes) {
       references: {
         model: 'Users',
         key: 'code'
-      },
-      unique: "fk_board_notice_users_code"
+      }
     }
   }, {
     sequelize,
@@ -56,8 +55,7 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "OwnerCode",
-        unique: true,
+        name: "fk_board_notice_users_code",
         using: "BTREE",
         fields: [
           { name: "OwnerCode" },

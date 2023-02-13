@@ -27,7 +27,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: "0:응답전, 1:응답중, 2:응답완료"
+      comment: "0:응답전, 1:응답중, 2:응답완료, 4:만료"
     }
   }, {
     sequelize,

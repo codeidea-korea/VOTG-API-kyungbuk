@@ -67,7 +67,7 @@ function initModels(sequelize) {
   ServicesCustomers.belongsTo(Services, { as: "ServiceCode_Service", foreignKey: "ServiceCode"});
   Services.hasMany(ServicesCustomers, { as: "ServicesCustomers", foreignKey: "ServiceCode"});
   BoardNotice.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
-  Users.hasOne(BoardNotice, { as: "BoardNotice", foreignKey: "OwnerCode"});
+  Users.hasMany(BoardNotice, { as: "BoardNotices", foreignKey: "OwnerCode"});
   Organizations.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
   Users.hasOne(Organizations, { as: "Organization", foreignKey: "OwnerCode"});
   OrganizationsMembers.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
