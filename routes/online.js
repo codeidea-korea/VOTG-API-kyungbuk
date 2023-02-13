@@ -957,7 +957,7 @@ router.post('/survey/answer/eachurl', async (req, res) => {
     // console.log(req)
     try {
         const { identifyCode, phoneCode, surveyCode, answerJson } = req.body
-        const createSurveyDocuments = await DB.SurveyOnlineAnswers.update(
+        const createSurveyDocuments = await DB.SurveyAnswersEachUrl.update(
             {
                 answer: answerJson.toString(),
                 status: 2,
