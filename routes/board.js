@@ -107,6 +107,45 @@ router.post('/notice/save', async (req, res) => {
 })
 
 /**
+ *  NOTICE 수정
+ */
+router.post('/notice/update', async (req, res) => {
+    // console.log(req)
+    try {
+        const { UserCode, BoardCode, title, contents } = req.body
+        const updateBoardNotice = await DB.BoardNotice.update(
+            {
+                title: title,
+                contents: contents,
+            },
+            {
+                where: {
+                    code: BoardCode,
+                    OwnerCode: Buffer.from(UserCode, 'hex'),
+                },
+            },
+        )
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Notice Update Success',
+            payload: {
+                updateBoardNotice,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
  *  NOTICE 리스트 받아오기
  */
 router.get('/notice/list', async (req, res) => {
@@ -162,6 +201,48 @@ router.get('/notice/code', async (req, res) => {
 })
 
 /**
+ *  NOTICE 글 삭제
+ */
+router.delete('/notice/delete', async (req, res) => {
+    // console.log(req)
+    try {
+        const UserCode = req.query.UserCode
+        const BoardCode = req.query.BoardCode
+
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
+        })
+
+        if (User.mode < 2) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'Permissions are not granted.',
+                payload: null,
+            })
+        }
+        const exBoardNoticeItem = await DB.BoardNotice.destroy({
+            where: { code: BoardCode },
+            force: true,
+        })
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Notice Item Delete Success',
+            payload: exBoardNoticeItem,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
  *  Learning 글쓰기
  */
 router.post('/learn/save', async (req, res) => {
@@ -181,6 +262,45 @@ router.post('/learn/save', async (req, res) => {
             msg: 'Board Learning Save Success',
             payload: {
                 createBoardLearning,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
+ *  NOTICE 수정
+ */
+router.post('/learn/update', async (req, res) => {
+    // console.log(req)
+    try {
+        const { UserCode, BoardCode, title, contents } = req.body
+        const updateBoardLearn = await DB.BoardLearning.update(
+            {
+                title: title,
+                contents: contents,
+            },
+            {
+                where: {
+                    code: BoardCode,
+                    OwnerCode: Buffer.from(UserCode, 'hex'),
+                },
+            },
+        )
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Learn Update Success',
+            payload: {
+                updateBoardLearn,
             },
         })
     } catch (error) {
@@ -249,22 +369,36 @@ router.get('/learn/code', async (req, res) => {
     }
 })
 
-router.post('/learn/delete', async (req, res) => {
+/**
+ *  NOTICE 글 삭제
+ */
+router.delete('/learn/delete', async (req, res) => {
     // console.log(req)
     try {
         const UserCode = req.query.UserCode
-        const BoardCode = req.query.UserCode
-        const createBoardLearning = await DB.BoardLearning.destroy({
-            where: { UserCode: UserCode, BoardCode: BoardCode },
+        const BoardCode = req.query.BoardCode
+
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
         })
 
+        if (User.mode < 2) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'Permissions are not granted.',
+                payload: null,
+            })
+        }
+        const exBoardLearnItem = await DB.BoardLearning.destroy({
+            where: { code: BoardCode },
+            force: true,
+        })
         return res.status(200).json({
             isSuccess: true,
             code: 200,
-            msg: 'Board Learning Delete Success',
-            payload: {
-                createBoardLearning,
-            },
+            msg: 'Board Notice Item Delete Success',
+            payload: exBoardLearnItem,
         })
     } catch (error) {
         console.error(error)

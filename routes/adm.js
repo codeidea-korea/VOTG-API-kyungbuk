@@ -114,7 +114,7 @@ router.post('/accountList', async (req, res) => {
             return res.status(403).json({
                 isSuccess: false,
                 code: 403,
-                msg: 'Not Allow.',
+                msg: 'Permissions are not granted.',
                 payload: null,
             })
         }
