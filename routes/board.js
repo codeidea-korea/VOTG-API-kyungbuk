@@ -261,7 +261,7 @@ router.post('/learn/delete', async (req, res) => {
         return res.status(200).json({
             isSuccess: true,
             code: 200,
-            msg: 'Board Learning Save Success',
+            msg: 'Board Learning Delete Success',
             payload: {
                 createBoardLearning,
             },
