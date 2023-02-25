@@ -73,6 +73,9 @@ router.post('/upload', cors(), upload.single('file'), async (req, res) => {
     }
 })
 
+/**
+ *  NOTICE 글쓰기
+ */
 router.post('/notice/save', async (req, res) => {
     // console.log(req)
     try {
@@ -103,6 +106,9 @@ router.post('/notice/save', async (req, res) => {
     }
 })
 
+/**
+ *  NOTICE 리스트 받아오기
+ */
 router.get('/notice/list', async (req, res) => {
     // console.log(req)
     try {
@@ -126,6 +132,9 @@ router.get('/notice/list', async (req, res) => {
     }
 })
 
+/**
+ *  NOTICE 글 받아오기
+ */
 router.get('/notice/code', async (req, res) => {
     // console.log(req)
     try {
@@ -140,6 +149,122 @@ router.get('/notice/code', async (req, res) => {
             code: 200,
             msg: 'Board Notice Item Get Success',
             payload: exBoardNoticeItem,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
+ *  Learning 글쓰기
+ */
+router.post('/learn/save', async (req, res) => {
+    // console.log(req)
+    try {
+        const { UserCode, BoardCode, title, contents } = req.body
+        const createBoardLearning = await DB.BoardLearning.create({
+            code: BoardCode,
+            title: title,
+            contents: contents,
+            OwnerCode: Buffer.from(UserCode, 'hex'),
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Learning Save Success',
+            payload: {
+                createBoardLearning,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
+ *  Learning 리스트 받아오기
+ */
+router.get('/learn/list', async (req, res) => {
+    // console.log(req)
+    try {
+        const exBoardLearning = await DB.BoardLearning.findAll({
+            order: [['createdAt', 'DESC']],
+        })
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Learning List Success',
+            payload: exBoardLearning,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
+ *  Learning 글 받아오기
+ */
+router.get('/learn/code', async (req, res) => {
+    // console.log(req)
+    try {
+        const BoardCode = req.query.BoardCode
+        const exBoardLearningItem = await DB.BoardLearning.findOne({
+            where: {
+                code: BoardCode,
+            },
+        })
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Learning Item Get Success',
+            payload: exBoardLearningItem,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/learn/delete', async (req, res) => {
+    // console.log(req)
+    try {
+        const UserCode = req.query.UserCode
+        const BoardCode = req.query.UserCode
+        const createBoardLearning = await DB.BoardLearning.destroy({
+            where: { UserCode: UserCode, BoardCode: BoardCode },
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Learning Save Success',
+            payload: {
+                createBoardLearning,
+            },
         })
     } catch (error) {
         console.error(error)

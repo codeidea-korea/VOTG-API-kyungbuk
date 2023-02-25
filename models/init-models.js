@@ -1,4 +1,5 @@
 var DataTypes = require("sequelize").DataTypes;
+var _BoardLearning = require("./BoardLearning");
 var _BoardNotice = require("./BoardNotice");
 var _Organizations = require("./Organizations");
 var _OrganizationsMembers = require("./OrganizationsMembers");
@@ -14,6 +15,7 @@ var _SurveyAnswersEachUrl = require("./SurveyAnswersEachUrl");
 var _SurveyOnlineAnswers = require("./SurveyOnlineAnswers");
 var _Users = require("./Users");
 var _UsersDetail = require("./UsersDetail");
+var _UsersGiftSendLog = require("./UsersGiftSendLog");
 var _UsersPaymentCard = require("./UsersPaymentCard");
 var _UsersPaymentPasswd = require("./UsersPaymentPasswd");
 var _UsersPaymentRequest = require("./UsersPaymentRequest");
@@ -24,6 +26,7 @@ var _UsersSyncSNS = require("./UsersSyncSNS");
 var _UsersUploadLogs = require("./UsersUploadLogs");
 
 function initModels(sequelize) {
+  var BoardLearning = _BoardLearning(sequelize, DataTypes);
   var BoardNotice = _BoardNotice(sequelize, DataTypes);
   var Organizations = _Organizations(sequelize, DataTypes);
   var OrganizationsMembers = _OrganizationsMembers(sequelize, DataTypes);
@@ -39,6 +42,7 @@ function initModels(sequelize) {
   var SurveyOnlineAnswers = _SurveyOnlineAnswers(sequelize, DataTypes);
   var Users = _Users(sequelize, DataTypes);
   var UsersDetail = _UsersDetail(sequelize, DataTypes);
+  var UsersGiftSendLog = _UsersGiftSendLog(sequelize, DataTypes);
   var UsersPaymentCard = _UsersPaymentCard(sequelize, DataTypes);
   var UsersPaymentPasswd = _UsersPaymentPasswd(sequelize, DataTypes);
   var UsersPaymentRequest = _UsersPaymentRequest(sequelize, DataTypes);
@@ -66,6 +70,8 @@ function initModels(sequelize) {
   PanelsQuestionList.hasMany(PanelsQuestionAnswer, { as: "PanelsQuestionAnswers", foreignKey: "QuestionCode"});
   ServicesCustomers.belongsTo(Services, { as: "ServiceCode_Service", foreignKey: "ServiceCode"});
   Services.hasMany(ServicesCustomers, { as: "ServicesCustomers", foreignKey: "ServiceCode"});
+  BoardLearning.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
+  Users.hasMany(BoardLearning, { as: "BoardLearnings", foreignKey: "OwnerCode"});
   BoardNotice.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
   Users.hasMany(BoardNotice, { as: "BoardNotices", foreignKey: "OwnerCode"});
   Organizations.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
@@ -78,6 +84,8 @@ function initModels(sequelize) {
   Users.hasMany(ServicesCustomers, { as: "ServicesCustomers", foreignKey: "UserCode"});
   UsersDetail.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasOne(UsersDetail, { as: "UsersDetail", foreignKey: "UserCode"});
+  UsersGiftSendLog.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
+  Users.hasMany(UsersGiftSendLog, { as: "UsersGiftSendLogs", foreignKey: "UserCode"});
   UsersPaymentCard.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersPaymentCard, { as: "UsersPaymentCards", foreignKey: "UserCode"});
   UsersPaymentPasswd.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
@@ -96,6 +104,7 @@ function initModels(sequelize) {
   Users.hasMany(UsersUploadLogs, { as: "UsersUploadLogs", foreignKey: "UserCode"});
 
   return {
+    BoardLearning,
     BoardNotice,
     Organizations,
     OrganizationsMembers,
@@ -111,6 +120,7 @@ function initModels(sequelize) {
     SurveyOnlineAnswers,
     Users,
     UsersDetail,
+    UsersGiftSendLog,
     UsersPaymentCard,
     UsersPaymentPasswd,
     UsersPaymentRequest,
