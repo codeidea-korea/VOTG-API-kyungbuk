@@ -209,6 +209,7 @@ router.post('/pay/resultList', async (req, res) => {
         }
 
         const resultList = await DB.UsersPaymentRequest.findAll({
+            where: { status: '1' },
             order: [['createdAt', 'ASC']],
         })
 
@@ -242,4 +243,50 @@ router.post('/pay/resultList', async (req, res) => {
     }
 })
 
+/**
+ *
+ *
+ * 패널 관리
+ *
+ *
+ *
+ */
+
+router.post('/panelList', async (req, res) => {
+    try {
+        // const { param_code, param_name } = req.params
+        const { UserCode } = req.body
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
+        })
+
+        if (User.mode < 2) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'Permissions are not granted.',
+                payload: null,
+            })
+        }
+
+        const PanelList = await DB.Panels.findAll({
+            attributes: { exclude: ['password'] },
+            order: [['createdAt', 'ASC']],
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'ok',
+            payload: PanelList,
+        })
+    } catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
 module.exports = router
