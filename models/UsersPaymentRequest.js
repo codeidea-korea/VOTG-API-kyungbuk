@@ -58,11 +58,10 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: 0,
       comment: "주문 개수"
     },
-    issuedCount: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment: "발행 개수"
+    productNumber: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: "구매 제품 넘버"
     }
   }, {
     sequelize,

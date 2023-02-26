@@ -77,6 +77,7 @@ router.get('/', async (req, res) => {
     }
 })
 
+//카드 등록확인
 router.get('/check', async (req, res) => {
     try {
         var code = req.query.UserCode
@@ -126,6 +127,7 @@ router.get('/check', async (req, res) => {
     }
 })
 
+//카드 등록 비밀번호 확인
 router.post('/passwdCheck', async (req, res) => {
     try {
         const { UserCode, billingPasswd } = req.body
@@ -158,154 +160,7 @@ router.post('/passwdCheck', async (req, res) => {
     }
 })
 
-router.post('/callbackResult', async (req, res) => {
-    try {
-        const { UserCode, billingPasswd } = req.body
-        const Users = await DB.UsersPaymentPasswd.findOne({
-            where: { UserCode: Buffer.from(UserCode, 'hex') },
-        })
-        const result = await bcrypt.compare(billingPasswd, Users.billingPasswd)
-        if (result) {
-            return res.status(200).json({
-                isSuccess: true,
-                code: 200,
-                msg: 'check complete',
-                payload: result,
-            })
-        } else {
-            return res.status(200).json({
-                isSuccess: false,
-                code: 401,
-                msg: 'check complete',
-                payload: result,
-            })
-        }
-    } catch (error) {
-        return res.status(400).json({
-            isSuccess: false,
-            code: 400,
-            msg: 'Bad Request',
-            payload: error,
-        })
-    }
-})
-
-//일반 카드결제
-router.post('/cachedBilling', async (req, res) => {
-    try {
-        const { UserCode, orderCode, orderType, orderName, price, orderCount } = req.body
-        Cache.del(orderCode)
-        Cache.put(orderCode, false, 1000 * 60 * 5)
-        debug.axios('cachedBilling', req.body)
-        // debug.axios('orderCode', orderCode)
-        const exOrderCode = await DB.UsersPaymentRequest.findAll({
-            where: {
-                UserCode: Buffer.from(UserCode, 'hex'),
-                orderCode: orderCode,
-            },
-        })
-        if (!exOrderCode.length > 0) {
-            await DB.UsersPaymentRequest.create({
-                UserCode: Buffer.from(UserCode, 'hex'),
-                issuedAt: Date.now(),
-                status: 0,
-                orderType: orderType,
-                orderCode: orderCode,
-                orderName: orderName,
-                amount: price,
-                orderCount: orderCount,
-            })
-        } else {
-            await DB.UsersPaymentRequest.update(
-                {
-                    issuedAt: Date.now(),
-                    status: 0,
-                    orderType: orderType,
-                    orderName: orderName,
-                    amount: price,
-                    orderCount: orderCount,
-                },
-                {
-                    where: {
-                        UserCode: Buffer.from(UserCode, 'hex'),
-                        orderCode: orderCode,
-                    },
-                },
-            )
-        }
-
-        return res.status(200).json({
-            isSuccess: true,
-            code: 200,
-            msg: 'CachedBilling complete',
-            payload: { orderCode },
-        })
-    } catch (error) {
-        return res.status(400).json({
-            isSuccess: false,
-            code: 400,
-            msg: 'Bad Request',
-            payload: error,
-        })
-    }
-})
-
-router.get('/checkout', async (req, res) => {
-    try {
-        //일반결제 결과 통보 확인
-        debug.axios('checkout', req.query)
-        // debug.axios('checkout', req.query.USERID)
-        // debug.axios('checkout', req.query.ORDERNO)
-        Cache.put(req.query.ORDERNO, true, 1000 * 30)
-        const exOrderUpdate = await DB.UsersPaymentRequest.update(
-            {
-                issuedAt: Date.now(),
-                status: 1,
-                registerCode: req.query.CARDNO,
-                billingUid: req.query.DAOUTRX,
-            },
-            {
-                where: {
-                    orderCode: req.query.ORDERNO,
-                },
-            },
-        )
-
-        return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
-    } catch (error) {
-        console.error(error)
-        return res.status(400).json({
-            isSuccess: false,
-            code: 400,
-            msg: 'Bad Request',
-            payload: error,
-        })
-    }
-})
-
-router.post('/checkout/status', async (req, res) => {
-    try {
-        const { orderCode } = req.body
-        const payResult = Cache.get(orderCode)
-        //일반결제 결과 통보 확인
-        // debug.axios('checkout-status', payResult)
-        return res.status(200).json({
-            isSuccess: true,
-            code: 200,
-            msg: 'CachedBilling status',
-            payload: { result: payResult },
-        })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).json({
-            isSuccess: false,
-            code: 400,
-            msg: 'Bad Request',
-            payload: error,
-        })
-    }
-})
-
+// 카드등록 처리
 router.post('/issueBilling', async (req, res) => {
     try {
         //TEST imp_uid: imp_942336243755
@@ -549,6 +404,7 @@ router.post('/payBilling', async (req, res) => {
             orderName,
             price,
             orderCount,
+            productNumber,
         } = req.body
 
         const CardInfo = await DB.UsersPaymentCard.findOne({
@@ -653,6 +509,7 @@ router.post('/payBilling', async (req, res) => {
                 orderName: orderName,
                 amount: price,
                 orderCount: orderCount,
+                productNumber: productNumber,
             })
             return res.status(201).json({
                 isSuccess: true,
@@ -672,6 +529,7 @@ router.post('/payBilling', async (req, res) => {
                 orderName: orderName,
                 amount: price,
                 orderCount: orderCount,
+                productNumber: productNumber,
             })
             return res.status(403).json({
                 isSuccess: false,
@@ -686,6 +544,237 @@ router.post('/payBilling', async (req, res) => {
     }
 })
 
+//일반 카드결제 결제 캐시
+router.post('/cachedBilling', async (req, res) => {
+    try {
+        const { UserCode, orderCode, orderType, orderName, price, orderCount, productNumber } =
+            req.body
+        Cache.del(orderCode)
+        Cache.put(orderCode, false, 1000 * 60 * 5)
+        debug.axios('cachedBilling', req.body)
+        // debug.axios('orderCode', orderCode)
+        const exOrderCode = await DB.UsersPaymentRequest.findAll({
+            where: {
+                UserCode: Buffer.from(UserCode, 'hex'),
+                orderCode: orderCode,
+            },
+        })
+        if (!exOrderCode.length > 0) {
+            await DB.UsersPaymentRequest.create({
+                UserCode: Buffer.from(UserCode, 'hex'),
+                issuedAt: Date.now(),
+                status: 0,
+                orderType: orderType,
+                orderCode: orderCode,
+                orderName: orderName,
+                amount: price,
+                orderCount: orderCount,
+                productNumber: productNumber,
+            })
+        } else {
+            await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 0,
+                    orderType: orderType,
+                    orderName: orderName,
+                    amount: price,
+                    orderCount: orderCount,
+                    productNumber: productNumber,
+                },
+                {
+                    where: {
+                        UserCode: Buffer.from(UserCode, 'hex'),
+                        orderCode: orderCode,
+                    },
+                },
+            )
+        }
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'CachedBilling complete',
+            payload: { orderCode },
+        })
+    } catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+//결제 확인 통보 : 다우결제시스템 => 서버에 응답코드
+router.get('/checkout', async (req, res) => {
+    try {
+        //일반결제 결과 통보 확인
+        debug.axios('checkout', req.query)
+        // debug.axios('checkout', req.query.USERID)
+        // debug.axios('checkout', req.query.ORDERNO)
+        Cache.put(req.query.ORDERNO, true, 1000 * 30)
+
+        const exOrderTypeCheck = await DB.UsersPaymentRequest.findOne({
+            where: {
+                orderCode: req.query.ORDERNO,
+            },
+            // attributes: { exclude: ['password'] },
+            // order: [['createdAt', 'DESC']],
+        })
+
+        if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
+            const exOrderUpdate = await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 1,
+                    registerCode: req.query.CARDNO,
+                    billingUid: req.query.DAOUTRX,
+                },
+                {
+                    where: {
+                        orderCode: req.query.ORDERNO,
+                    },
+                },
+            ).then((result) => {
+                console.log('result', result)
+            })
+        } else if (exOrderTypeCheck.orderType == 2) {
+            const UsersGiftList = await DB.UsersGiftList.create({
+                UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                status: '1',
+                orderCode: exOrderTypeCheck.orderCode,
+                orderName: exOrderTypeCheck.orderName,
+                productNumber: exOrderTypeCheck.productNumber,
+                buying: exOrderTypeCheck.orderCount,
+                sending: 0,
+            })
+            const exOrderUpdate = await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 1,
+                    registerCode: req.query.CARDNO,
+                    billingUid: req.query.DAOUTRX,
+                },
+                {
+                    where: {
+                        orderCode: req.query.ORDERNO,
+                    },
+                },
+            ).then((result) => {
+                console.log('result', result)
+            })
+        }
+
+        return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.get('/checkout/demo', async (req, res) => {
+    try {
+        //일반결제 결과 통보 확인
+        debug.axios('checkout/demo', req.query)
+        // debug.axios('checkout', req.query.USERID)
+        // debug.axios('checkout', req.query.ORDERNO)
+        // Cache.put(req.query.ORDERNO, true, 1000 * 30)
+
+        const exOrderTypeCheck = await DB.UsersPaymentRequest.findOne({
+            where: {
+                orderCode: req.query.ORDERNO,
+            },
+            // attributes: { exclude: ['password'] },
+            // order: [['createdAt', 'DESC']],
+        })
+
+        debug.axios('exOrderTypeCheck', exOrderTypeCheck.orderType)
+        if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
+            const exOrderUpdate = await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 1,
+                    registerCode: 'demo-CARDNO',
+                    billingUid: 'demo-DAOUTRX',
+                },
+                {
+                    where: {
+                        orderCode: req.query.ORDERNO,
+                    },
+                },
+            ).then((result) => {
+                console.log('result', result)
+            })
+        } else if (exOrderTypeCheck.orderType == 2) {
+            const UsersGiftList = await DB.UsersGiftList.create({
+                UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                status: '1',
+                orderCode: exOrderTypeCheck.orderCode,
+                orderName: exOrderTypeCheck.orderName,
+                productNumber: exOrderTypeCheck.productNumber,
+                buying: exOrderTypeCheck.orderCount,
+                sending: 0,
+            })
+            const exOrderUpdate = await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 1,
+                    registerCode: 'demo-CARDNO',
+                    billingUid: 'demo-DAOUTRX',
+                },
+                {
+                    where: {
+                        orderCode: req.query.ORDERNO,
+                    },
+                },
+            ).then((result) => {
+                console.log('result', result)
+            })
+        }
+        return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+// 결제가 완료되었는지 Cache를 통해서 확인
+router.post('/checkout/status', async (req, res) => {
+    try {
+        const { orderCode } = req.body
+        const payResult = Cache.get(orderCode)
+        //일반결제 결과 통보 확인
+        // debug.axios('checkout-status', payResult)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'CachedBilling status',
+            payload: { result: payResult },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+//사용자의 결제 리스트 가져오기
 router.post('/request/list', async (req, res) => {
     try {
         const { UserCode } = req.body
@@ -701,6 +790,37 @@ router.post('/request/list', async (req, res) => {
             isSuccess: true,
             code: 200,
             msg: 'Paymetn Request List',
+            payload: exRequest,
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+//사용자의 결제 항목 가져오기
+router.get('/request/item', async (req, res) => {
+    try {
+        const UserCode = req.query.UserCode
+        const orderCode = req.query.orderCode
+        const exRequest = await DB.UsersPaymentRequest.findOne({
+            where: {
+                UserCode: Buffer.from(UserCode, 'hex'),
+                orderCode: orderCode,
+            },
+            // attributes: { exclude: ['password'] },
+            // order: [['createdAt', 'DESC']],
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Paymetn Request Item',
             payload: exRequest,
         })
     } catch (error) {

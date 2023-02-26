@@ -292,6 +292,8 @@ CREATE OR REPLACE TABLE UsersPaymentRequest
     orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid',
     orderName               varchar(255)                 not null comment '주문 이름=name',
     amount                  varchar(255)                 not null comment '주문 금액',
+    orderCount              int                          not null default 0 comment '주문 개수',
+    issuedCount             int                          not null default 0 comment '발행 개수',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',
@@ -299,10 +301,27 @@ CREATE OR REPLACE TABLE UsersPaymentRequest
     constraint fk_payment_request_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
-ALTER TABLE UsersPaymentRequest DROP orderCount;
+ALTER TABLE UsersPaymentRequest DROP issuedCount;
 ALTER TABLE UsersPaymentRequest ADD orderCount int not null default 0 comment '주문 개수' after amount;
 ALTER TABLE UsersPaymentRequest ADD issuedCount int not null default 0 comment '발행 개수' after orderCount;
+ALTER TABLE UsersPaymentRequest ADD productNumber varchar(255) null default null comment '구매 제품 넘버' after issuedCount;
 
+DROP TABLE UsersGiftList;
+CREATE OR REPLACE TABLE UsersGiftList
+(
+    UserCode                binary(16)                       null comment '사용자 고유식별자',
+    status                  varchar(255)                 not null comment '0:대기(회색), 1:승인(파랑), 2:발송중(노랑), 3:완료(초록), 4:취소환불(보라)',
+    orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid <= UsersPaymentRequest와 동일한 값',
+    orderName               varchar(255)                 not null comment '주문 이름=name',
+    productNumber           varchar(255)                 not null comment '제품 고유 넘버',
+    buying                  varchar(255)                 not null comment '구매 수량',
+    sending                 varchar(255)                 not null comment '발송 수량',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (UserCode, orderCode),
+    constraint fk_gift_List_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+) charset = utf8mb3;
 
 DROP TABLE UsersGiftSendLog;
 CREATE OR REPLACE TABLE UsersGiftSendLog
@@ -310,16 +329,49 @@ CREATE OR REPLACE TABLE UsersGiftSendLog
     UserCode                binary(16)                       null comment '사용자 고유식별자',
 	surveyCode              varchar(255)                 not null comment '서베이 생성 고유넘버',
     orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid',
+    cooperNumber            varchar(255)                 not null comment '쿠폰 발행번호',
     status                  varchar(255)                 not null comment '0:대기, 1:승인(파랑), 2:취소(노랑), 3:완료(초록)',
     identifyCode            binary(16)                       null comment '응답자 고유식별자',
     phoneCode               varchar(255)                 not null default '' comment '응답자 휴대전화번호 식별자',
     createdAt   timestamp   default current_timestamp()  not null comment '생성일',
     updatedAt   timestamp                                    null on update current_timestamp() comment '수정일',
     deletedAt   timestamp                                    null comment '삭제일',
-    PRIMARY KEY (UserCode,surveyCode, identifyCode),
+    PRIMARY KEY (UserCode, surveyCode, identifyCode),
     constraint fk_payment_gift_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
 ) charset = utf8mb3;
 
+INSERT INTO UsersGiftSendLog (UserCode, surveyCode, orderCode,cooperNumber,status,identifyCode,phoneCode)
+    VALUES ((SELECT code FROM Users WHERE email='utxtion@me.com'), 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1, '073dfe7b0e26d243', '010-4215-2535');
+
+DROP TRIGGER AUTO_CHECKUP_SENDING_GIFT;
+DELIMITER $$
+	CREATE TRIGGER AUTO_CHECKUP_SENDING_GIFT
+	AFTER INSERT ON UsersGiftSendLog
+	FOR EACH ROW
+	BEGIN
+		DECLARE totalCount INTEGER;
+		SELECT COUNT(*)
+            INTO totalCount -- 변수에 값 할당
+            FROM UsersGiftSendLog
+            WHERE orderCode = NEW.orderCode;
+		UPDATE UsersGiftList SET sending= totalCount WHERE orderCode = NEW.orderCode;
+	END $$
+DELIMITER ;
+
+DROP TRIGGER AUTO_UPDATE_SENDING_GIFT;
+DELIMITER $$
+	CREATE TRIGGER AUTO_UPDATE_SENDING_GIFT
+	AFTER UPDATE ON UsersGiftSendLog
+	FOR EACH ROW
+	BEGIN
+		DECLARE totalCount INTEGER;
+		SELECT COUNT(*)
+            INTO totalCount -- 변수에 값 할당
+            FROM UsersGiftSendLog
+            WHERE orderCode = NEW.orderCode;
+		UPDATE UsersGiftList SET sending= totalCount WHERE orderCode = NEW.orderCode;
+	END $$
+DELIMITER ;
 
 
 DROP TABLE Organizations;

@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('UsersGiftSendLog', {
+  return sequelize.define('UsersGiftList', {
     UserCode: {
       type: DataTypes.BLOB,
       allowNull: false,
@@ -11,43 +11,40 @@ module.exports = function(sequelize, DataTypes) {
         key: 'code'
       }
     },
-    surveyCode: {
+    status: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      primaryKey: true,
-      comment: "서베이 생성 고유넘버"
+      comment: "0:대기(회색), 1:승인(파랑), 2:발송중(노랑), 3:완료(초록), 4:취소환불(보라)"
     },
     orderCode: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      comment: "주문 고유 식별번호=merchant_uid"
-    },
-    cooperNumber: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      comment: "쿠폰 발행번호"
-    },
-    status: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      comment: "0:대기, 1:승인(파랑), 2:취소(노랑), 3:완료(초록)"
-    },
-    identifyCode: {
-      type: DataTypes.BLOB,
-      allowNull: false,
       primaryKey: true,
-      comment: "응답자 고유식별자"
+      comment: "주문 고유 식별번호=merchant_uid <= UsersPaymentRequest와 동일한 값"
     },
-    phoneCode: {
+    orderName: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      defaultValue: "",
-      comment: "응답자 휴대전화번호 식별자"
+      comment: "주문 이름=name"
+    },
+    productNumber: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      comment: "제품 고유 넘버"
+    },
+    buying: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      comment: "구매 수량"
+    },
+    sending: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      comment: "발송 수량"
     }
   }, {
     sequelize,
-    tableName: 'UsersGiftSendLog',
-    hasTrigger: true,
+    tableName: 'UsersGiftList',
     timestamps: true,
     paranoid: true,
     indexes: [
@@ -57,8 +54,7 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "UserCode" },
-          { name: "surveyCode" },
-          { name: "identifyCode" },
+          { name: "orderCode" },
         ]
       },
     ]
