@@ -1213,14 +1213,53 @@ router.post('/survey/answer/eachurl', async (req, res) => {
         const sendingPhoneNumber = decipher(phoneCode)
         // debug.request('decipher(phoneCode)', sendingPhoneNumber)
 
+        const existEachAnswerInfo = await DB.SurveyAnswersEachUrl.findOne({
+            where: { url: eachUrl, surveyCode: surveyCode },
+        })
+        // debug.axios('existEachAnswerInfo', existEachAnswerInfo)
+
         const updateEachAnswer = await DB.SurveyAnswersEachUrl.update(
             {
                 answer: answerJson.toString(),
                 status: 2,
             },
             { where: { url: eachUrl, surveyCode: surveyCode } },
-        ).then((result) => {
+        ).then(async (result) => {
             debug.axios('updateEachAnswer Result', result)
+            const exCheck = await DB.SurveyOnlineAnswers.findAll({
+                where: {
+                    identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
+                    surveyCode: surveyCode,
+                },
+            })
+            debug.axios('exCheck Result', exCheck.length)
+            if (exCheck.length > 0) {
+                const updateSurveyDocuments = await DB.SurveyOnlineAnswers.update(
+                    {
+                        url: eachUrl,
+                        phoneCode: phoneCode,
+                        status: 2,
+                        answer: answerJson.toString(),
+                    },
+                    {
+                        where: {
+                            identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
+                            surveyCode: surveyCode,
+                        },
+                    },
+                )
+                debug.axios('updateSurveyDocuments Result', updateSurveyDocuments)
+            } else {
+                const createSurveyDocuments = await DB.SurveyOnlineAnswers.create({
+                    identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
+                    surveyCode: surveyCode,
+                    url: eachUrl,
+                    phoneCode: phoneCode,
+                    status: 2,
+                    answer: answerJson.toString(),
+                })
+                debug.axios('createSurveyDocuments Result', createSurveyDocuments)
+            }
         })
 
         const checkProductNumber = await axios
@@ -1230,11 +1269,6 @@ router.post('/survey/answer/eachurl', async (req, res) => {
             .then(async (r) => {
                 debug.axios('checkProductNumber Result', r.data)
             })
-
-        const existEachAnswerInfo = await DB.SurveyAnswersEachUrl.findOne({
-            where: { url: eachUrl, surveyCode: surveyCode },
-        })
-        // debug.axios('existEachAnswerInfo', existEachAnswerInfo)
 
         const existUserGiftList = await DB.UsersGiftList.findOne({
             where: { orderCode: orderCode },

@@ -198,6 +198,7 @@ ALTER TABLE SurveyAnswers MODIFY COLUMN phoneCode varchar(255) after identifyCod
 
 INSERT INTO SurveyOnlineAnswers (identifyCode, surveyCode, answer) VALUES (UNHEX(REPLACE(UUID(),'-','')), '1f0f6c8cd554da70c596680cf1ee044c', '[]');
 
+
 DELIMITER $$
 CREATE PROCEDURE SurveyOnlineAnswersInsert() -- ⓐ myFunction이라는 이름의 프로시져
 BEGIN
@@ -211,7 +212,7 @@ DELIMITER ;
 CALL SurveyOnlineAnswersInsert();
 
 DROP TABLE SurveyAnswersEachUrl;
-CREATE OR REPLACE TABLE SurveyAnswersEachUrl
+CREATE TABLE SurveyAnswersEachUrl
 (
     identifyCode    binary(16)                               not null comment '응답자 고유식별자',
 	surveyCode      varchar(255)                             not null comment '파일 업로드 고유넘버',
@@ -360,6 +361,13 @@ INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,st
 INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
     VALUES ( '073dfe7b0e26d245', 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1,'010-4215-2535');
 
+
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d240', 'e68f0fab2946302b','order-13cf0bcfcb7347d8800247ca-1676253128793','012345678910',1,'010-4215-2535');
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d241', 'e68f0fab2946302b','order-13cf0bcfcb7347d8800247ca-1676253128793','012345678910',1,'010-4215-2535');
+
+
 DROP TRIGGER AUTO_CHECKUP_SENDING_GIFT;
 DELIMITER $$
 	CREATE TRIGGER AUTO_CHECKUP_SENDING_GIFT
@@ -387,6 +395,21 @@ DELIMITER $$
             FROM UsersGiftSendLog
             WHERE orderCode = NEW.orderCode;
 		UPDATE UsersGiftList SET sending= totalCount WHERE orderCode = NEW.orderCode;
+	END $$
+DELIMITER ;
+
+DROP TRIGGER AUTO_DELETE_SENDING_GIFT;
+DELIMITER $$
+	CREATE TRIGGER AUTO_DELETE_SENDING_GIFT
+	AFTER DELETE ON UsersGiftSendLog
+	FOR EACH ROW
+	BEGIN
+		DECLARE totalCount INTEGER;
+		SELECT COUNT(*)
+            INTO totalCount -- 변수에 값 할당
+            FROM UsersGiftSendLog
+            WHERE orderCode = OLD.orderCode;
+		UPDATE UsersGiftList SET sending= totalCount WHERE orderCode = OLD.orderCode;
 	END $$
 DELIMITER ;
 
