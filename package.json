@@ -5,6 +5,7 @@
     "main": "app.js",
     "scripts": {
         "local": "NODE_ENV=local DEBUG=app*,debug*,error* nodemon app",
+        "local-pm2": "pm2 start \"npm run local\" --name myAppName",
         "pm2": "DEBUG=app*,debug*,error* cross-env npx pm2 start ecosystem.config.js --only VOTG-API-dev --env development && npx pm2 monit",
         "dev": "DEBUG=app*,debug*,error* cross-env npx pm2 start ecosystem.config.js --only VOTG-API-dev --env development",
         "prod": "cross-env npx pm2 start ecosystem.config.js --only VOTG-API-prod --env production",
