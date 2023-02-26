@@ -498,19 +498,45 @@ router.post('/payBilling', async (req, res) => {
             paymentResult.data
 
         if (RESULTCODE === '0000') {
-            await DB.UsersPaymentRequest.create({
-                UserCode: Buffer.from(UserCode, 'hex'),
-                issuedAt: Date.now(),
-                status: 1,
-                billingUid: DAOUTRX,
-                registerCode: CardInfo.registerCode,
-                orderType: orderType,
-                orderCode: merchantUid,
-                orderName: orderName,
-                amount: price,
-                orderCount: orderCount,
-                productNumber: productNumber,
-            })
+            if (orderType == 0 || orderType == 1) {
+                await DB.UsersPaymentRequest.create({
+                    UserCode: Buffer.from(UserCode, 'hex'),
+                    issuedAt: Date.now(),
+                    status: 1,
+                    billingUid: DAOUTRX,
+                    registerCode: CardInfo.registerCode,
+                    orderType: orderType,
+                    orderCode: merchantUid,
+                    orderName: orderName,
+                    amount: price,
+                    orderCount: orderCount,
+                    productNumber: productNumber,
+                })
+            } else if (orderType == 2) {
+                const UsersGiftList = await DB.UsersGiftList.create({
+                    UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                    status: '1',
+                    orderCode: exOrderTypeCheck.orderCode,
+                    orderName: exOrderTypeCheck.orderName,
+                    productNumber: exOrderTypeCheck.productNumber,
+                    buying: exOrderTypeCheck.orderCount,
+                    sending: 0,
+                })
+                await DB.UsersPaymentRequest.create({
+                    UserCode: Buffer.from(UserCode, 'hex'),
+                    issuedAt: Date.now(),
+                    status: 1,
+                    billingUid: DAOUTRX,
+                    registerCode: CardInfo.registerCode,
+                    orderType: orderType,
+                    orderCode: merchantUid,
+                    orderName: orderName,
+                    amount: price,
+                    orderCount: orderCount,
+                    productNumber: productNumber,
+                })
+            }
+
             return res.status(201).json({
                 isSuccess: true,
                 code: 201,
@@ -624,6 +650,7 @@ router.get('/checkout', async (req, res) => {
             // order: [['createdAt', 'DESC']],
         })
 
+        debug.axios('exOrderTypeCheck', exOrderTypeCheck.orderType)
         if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
             const exOrderUpdate = await DB.UsersPaymentRequest.update(
                 {
