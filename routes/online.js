@@ -511,8 +511,8 @@ router.post('/survey/distribute/change', async (req, res) => {
     }
 })
 
-// [생성자 호출 - post] 관리자 모드 배포
-router.post('/survey/distribute/change/adm', async (req, res) => {
+// [생성자 호출 - post] 관리자 모드 배포 신규
+router.post('/survey/distribute/change/general', async (req, res) => {
     // console.log(req)
     try {
         const {
@@ -560,7 +560,7 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
                 where: {
                     surveyCode: surveyCode,
                 },
-                attributes: ['identifyCode', 'phoneCode'],
+                attributes: ['identifyCode', 'url', 'phoneCode'],
             })
 
             const resultExistPhone = checkDistributeBefore?.map((item, pIndex) => {
@@ -570,6 +570,7 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
 
             contactJson.phoneNumbers.map(async (phone, pIndex) => {
                 let resultIdentifyCode = ''
+                let resultEachUrl = ''
                 // console.log('phoneNumbers', phone)
                 // cipher를 통해 생성된 전화번호가 기존의 배포 데이터로서 존재하는지 체크
                 // phoneCode,surveyCode 가 일치하는 정보가 있을 경우는 생성 x
@@ -580,17 +581,17 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
 
                 //기존데이터가 존재할 경우 처리
                 if (resultExistPhone.length > 0) {
-                    console.log('resultExistPhone', resultExistPhone)
+                    debug.axios('resultExistPhone', resultExistPhone)
                     if (resultExistPhone.includes(phone)) {
-                        console.log('phone', phone)
+                        debug.axios('phone', phone)
                         // console.log('hashedPhone', hashedPhone)
                         // console.log('Exist item', item.identifyCode)
 
                         const filteredData = checkDistributeBefore.filter(
                             (item) => decipher(item.phoneCode) == phone,
                         )
-                        console.log('filteredData.identifyCode', filteredData[0].identifyCode)
-                        resultIdentifyCode = filteredData[0].identifyCode
+                        debug.axios('filteredData.url', filteredData[0].url)
+                        resultEachUrl = filteredData[0].url
                         const createSurveyDocuments = await DB.SurveyAnswersEachUrl.update(
                             {
                                 status: 5,
@@ -598,6 +599,7 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
                             {
                                 where: {
                                     identifyCode: filteredData[0].identifyCode,
+                                    url: filteredData[0].url,
                                     surveyCode: surveyCode,
                                 },
                             },
@@ -606,10 +608,12 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
                 }
                 // 기존데이터가 존재하지 않을때 처리
                 else {
-                    resultIdentifyCode = createResourceCode(8)
+                    resultIdentifyCode = Buffer.from(uuid().toString().replace(/-/g, ''), 'hex')
+                    resultEachUrl = createResourceCode(8)
                     const phoneCode = cipher(phone)
                     const createSurveyDocuments = await DB.SurveyAnswersEachUrl.create({
                         identifyCode: resultIdentifyCode,
+                        url: resultEachUrl,
                         phoneCode: phoneCode,
                         surveyCode: surveyCode,
                         answer: `[]`,
@@ -648,7 +652,7 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
                             content: `${JSON.parse(surveyJson).info?.title.substr(
                                 0,
                                 13,
-                            )}\n바로가기\nhttps://survey.gift${sendURL}?c=${resultIdentifyCode}`,
+                            )}\n바로가기\nhttps://survey.gift${sendURL}?c=${resultEachUrl}`,
                             // content: `소상공인시장진흥공단 수혜업체 만족도조사\n\n안녕하세요 소상공인시장진흥공단은 소상공인 발전을 위하여 만족도 조사를 실시하고 있으니 꼭 참여 부탁드립니다.\n(조사는 에이치앤컨설팅과 뷰즈온더고서베이를 통해 수행됩니다)\n\nhttps://survey.gift${sendURL}`,
                             // content: `[뷰즈온더고]\n테스터 참여하기\n접속링크:https://viewsonthego.com/auth/login\n아이디:tester@votg.com\n비밀번호:tester00!\n\n설문조사 응답바로가기\nhttps://survey.gift${sendURL}`,
                             messages: [
@@ -711,8 +715,8 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
                                         {
                                             type: 'WL',
                                             name: '설문조사 바로가기',
-                                            linkMobile: `https://survey.gift${sendURL}?c=${resultIdentifyCode}`,
-                                            linkPc: `https://survey.gift${sendURL}?c=${resultIdentifyCode}`,
+                                            linkMobile: `https://survey.gift${sendURL}?c=${resultEachUrl}`,
+                                            linkPc: `https://survey.gift${sendURL}?c=${resultEachUrl}`,
                                         },
                                     ],
                                 },
