@@ -1,15 +1,11 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('UsersGiftSendLog', {
-    UserCode: {
+    identifyCode: {
       type: DataTypes.BLOB,
       allowNull: false,
       primaryKey: true,
-      comment: "사용자 고유식별자",
-      references: {
-        model: 'Users',
-        key: 'code'
-      }
+      comment: "응답자 고유식별자"
     },
     surveyCode: {
       type: DataTypes.STRING(255),
@@ -20,6 +16,7 @@ module.exports = function(sequelize, DataTypes) {
     orderCode: {
       type: DataTypes.STRING(255),
       allowNull: false,
+      primaryKey: true,
       comment: "주문 고유 식별번호=merchant_uid"
     },
     cooperNumber: {
@@ -31,12 +28,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(255),
       allowNull: false,
       comment: "0:대기, 1:승인(파랑), 2:취소(노랑), 3:완료(초록)"
-    },
-    identifyCode: {
-      type: DataTypes.BLOB,
-      allowNull: false,
-      primaryKey: true,
-      comment: "응답자 고유식별자"
     },
     phoneCode: {
       type: DataTypes.STRING(255),
@@ -56,9 +47,9 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "UserCode" },
-          { name: "surveyCode" },
           { name: "identifyCode" },
+          { name: "orderCode" },
+          { name: "surveyCode" },
         ]
       },
     ]

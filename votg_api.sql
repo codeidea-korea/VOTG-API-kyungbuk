@@ -213,7 +213,7 @@ CALL SurveyOnlineAnswersInsert();
 DROP TABLE SurveyAnswersEachUrl;
 CREATE OR REPLACE TABLE SurveyAnswersEachUrl
 (
-    identifyCode    binary(16)                               null comment '응답자 고유식별자',
+    identifyCode    binary(16)                               not null comment '응답자 고유식별자',
 	surveyCode      varchar(255)                             not null comment '파일 업로드 고유넘버',
 	url             varchar(255) not null default '' comment '설문조사 개별 구분용 URL',
 	phoneCode       varchar(255) not null default '' comment '응답자 휴대전화번호 식별자',
@@ -225,7 +225,7 @@ CREATE OR REPLACE TABLE SurveyAnswersEachUrl
     PRIMARY KEY (IdentifyCode, surveyCode)
 ) charset = utf8mb3;
 
-ALTER TABLE SurveyAnswersEachUrl MODIFY COLUMN status int default 0 not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료';
+ALTER TABLE SurveyAnswersEachUrl MODIFY COLUMN identifyCode binary(16) not null comment '응답자 고유식별자';
 
 
 DROP TABLE SurveyOnlineAnswers;
@@ -244,7 +244,8 @@ CREATE TABLE SurveyOnlineAnswers
     PRIMARY KEY (IdentifyCode, surveyCode)
 ) charset = utf8mb3;
 
-SELECT * FROM SurveyOnlineAnswers WHERE DATE(createdAt) BETWEEN '2023-02-21' AND '2023-02-26';
+SELECT * FROM UsersSurveyOnlineLayouts WHERE surveyCode='e68f0fab2946302b';
+SELECT * FROM SurveyOnlineAnswers WHERE DATE(createdAt) BETWEEN '2023-02-25' AND '2023-02-26';
 
 SELECT * FROM SurveyOnlineAnswers WHERE surveyCode = '1f0f6c8cd554da70c596680cf1ee044c';
 
@@ -336,22 +337,28 @@ CREATE OR REPLACE TABLE UsersGiftList
 DROP TABLE UsersGiftSendLog;
 CREATE OR REPLACE TABLE UsersGiftSendLog
 (
-    UserCode                binary(16)                       null comment '사용자 고유식별자',
+    identifyCode            binary(16)                       null comment '응답자 고유식별자',
 	surveyCode              varchar(255)                 not null comment '서베이 생성 고유넘버',
     orderCode               varchar(255)                 not null comment '주문 고유 식별번호=merchant_uid',
     cooperNumber            varchar(255)                 not null comment '쿠폰 발행번호',
     status                  varchar(255)                 not null comment '0:대기, 1:승인(파랑), 2:취소(노랑), 3:완료(초록)',
-    identifyCode            binary(16)                       null comment '응답자 고유식별자',
     phoneCode               varchar(255)                 not null default '' comment '응답자 휴대전화번호 식별자',
     createdAt   timestamp   default current_timestamp()  not null comment '생성일',
     updatedAt   timestamp                                    null on update current_timestamp() comment '수정일',
     deletedAt   timestamp                                    null comment '삭제일',
-    PRIMARY KEY (UserCode, surveyCode, identifyCode),
-    constraint fk_payment_gift_users_code foreign key (UserCode) references Users (code) on update cascade on delete cascade
+    PRIMARY KEY (identifyCode, orderCode, surveyCode)
 ) charset = utf8mb3;
 
-INSERT INTO UsersGiftSendLog (UserCode, surveyCode, orderCode,cooperNumber,status,identifyCode,phoneCode)
-    VALUES ((SELECT code FROM Users WHERE email='utxtion@me.com'), 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1, '073dfe7b0e26d243', '010-4215-2535');
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d241', 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1,'010-4215-2535');
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d242', 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1,'010-4215-2535');
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d243', 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1,'010-4215-2535');
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d244', 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1,'010-4215-2535');
+INSERT INTO UsersGiftSendLog (identifyCode,surveyCode, orderCode,cooperNumber,status,phoneCode)
+    VALUES ( '073dfe7b0e26d245', 'c62bf76dddd2d5c2','order-13cf0bcfcb7347d8800247ca-1677379568222','012345678910',1,'010-4215-2535');
 
 DROP TRIGGER AUTO_CHECKUP_SENDING_GIFT;
 DELIMITER $$

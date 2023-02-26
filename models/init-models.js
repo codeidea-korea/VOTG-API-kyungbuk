@@ -88,8 +88,6 @@ function initModels(sequelize) {
   Users.hasOne(UsersDetail, { as: "UsersDetail", foreignKey: "UserCode"});
   UsersGiftList.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersGiftList, { as: "UsersGiftLists", foreignKey: "UserCode"});
-  UsersGiftSendLog.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
-  Users.hasMany(UsersGiftSendLog, { as: "UsersGiftSendLogs", foreignKey: "UserCode"});
   UsersPaymentCard.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
   Users.hasMany(UsersPaymentCard, { as: "UsersPaymentCards", foreignKey: "UserCode"});
   UsersPaymentPasswd.belongsTo(Users, { as: "UserCode_User", foreignKey: "UserCode"});
