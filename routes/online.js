@@ -1211,7 +1211,6 @@ router.post('/survey/answer/eachurl', async (req, res) => {
     try {
         const { eachUrl, phoneCode, surveyCode, answerJson, orderCode, productNumber } = req.body
         const sendingPhoneNumber = decipher(phoneCode)
-        console.log('sendingPhoneNumber', sendingPhoneNumber)
         // debug.request('decipher(phoneCode)', sendingPhoneNumber)
 
         const updateEachAnswer = await DB.SurveyAnswersEachUrl.update(
@@ -1224,46 +1223,46 @@ router.post('/survey/answer/eachurl', async (req, res) => {
             debug.axios('updateEachAnswer Result', result)
         })
 
-        // const checkProductNumber = await axios
-        //     .post(`${process.env.PROD_API_URL}/gift/goodsInfo/item`, {
-        //         productNumber: productNumber,
-        //     })
-        //     .then(async (r) => {
-        //         debug.axios('checkProductNumber Result', r.data)
-        //     })
+        const checkProductNumber = await axios
+            .post(`${process.env.PROD_API_URL}/gift/goodsInfo/item`, {
+                productNumber: productNumber,
+            })
+            .then(async (r) => {
+                debug.axios('checkProductNumber Result', r.data)
+            })
 
-        // const existEachAnswerInfo = await DB.SurveyAnswersEachUrl.findOne({
-        //     where: { url: eachUrl, surveyCode: surveyCode },
-        // })
-        // // debug.axios('existEachAnswerInfo', existEachAnswerInfo)
+        const existEachAnswerInfo = await DB.SurveyAnswersEachUrl.findOne({
+            where: { url: eachUrl, surveyCode: surveyCode },
+        })
+        // debug.axios('existEachAnswerInfo', existEachAnswerInfo)
 
-        // const existUserGiftList = await DB.UsersGiftList.findOne({
-        //     where: { orderCode: orderCode },
-        // })
-        // // debug.axios('existUserGiftList', existUserGiftList)
+        const existUserGiftList = await DB.UsersGiftList.findOne({
+            where: { orderCode: orderCode },
+        })
+        // debug.axios('existUserGiftList', existUserGiftList)
 
-        // if (existUserGiftList.buying > existUserGiftList.sending) {
-        //     const sendGift = await axios
-        //         .post(`${process.env.PROD_API_URL}/gift/issued/pub`, {
-        //             phoneNumber: sendingPhoneNumber,
-        //             productNumber: productNumber,
-        //         })
-        //         .then(async (r) => {
-        //             if (r.data.isSuccess) {
-        //                 debug.axios('sendGift Result', r.data.payload.CPN_LIST.CPN)
-        //                 await DB.UsersGiftSendLog.create({
-        //                     identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
-        //                     surveyCode: surveyCode,
-        //                     orderCode: orderCode,
-        //                     cooperNumber: r.data.payload.CPN_LIST.CPN.NO_CPN._text,
-        //                     status: 1,
-        //                     phoneCode: phoneCode,
-        //                 })
-        //             } else {
-        //                 debug.error('sendGift Error', r.data)
-        //             }
-        //         })
-        // }
+        if (existUserGiftList.buying > existUserGiftList.sending) {
+            const sendGift = await axios
+                .post(`${process.env.PROD_API_URL}/gift/issued/pub`, {
+                    phoneNumber: sendingPhoneNumber,
+                    productNumber: productNumber,
+                })
+                .then(async (r) => {
+                    if (r.data.isSuccess) {
+                        debug.axios('sendGift Result', r.data.payload.CPN_LIST.CPN)
+                        await DB.UsersGiftSendLog.create({
+                            identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
+                            surveyCode: surveyCode,
+                            orderCode: orderCode,
+                            cooperNumber: r.data.payload.CPN_LIST.CPN.NO_CPN._text,
+                            status: 1,
+                            phoneCode: phoneCode,
+                        })
+                    } else {
+                        debug.error('sendGift Error', r.data)
+                    }
+                })
+        }
 
         return res.status(200).json({
             isSuccess: true,
