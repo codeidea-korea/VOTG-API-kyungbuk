@@ -1266,40 +1266,43 @@ router.post('/survey/answer/eachurl', async (req, res) => {
             }
         })
 
-        const checkProductNumber = await axios
-            .post(`${process.env.PROD_API_URL}/gift/goodsInfo/item`, {
-                productNumber: productNumber,
-            })
-            .then(async (r) => {
-                debug.axios('checkProductNumber Result', r.data)
-            })
+        if (productNumber !== null && productNumber !== undefined) {
+            const checkProductNumber = await axios
+                .post(`${process.env.PROD_API_URL}/gift/goodsInfo/item`, {
+                    productNumber: productNumber,
+                })
+                .then(async (r) => {
+                    debug.axios('checkProductNumber Result', r.data)
+                })
+        }
 
         const existUserGiftList = await DB.UsersGiftList.findOne({
             where: { orderCode: orderCode },
         })
-        // debug.axios('existUserGiftList', existUserGiftList)
-
-        if (existUserGiftList.buying > existUserGiftList.sending) {
-            const sendGift = await axios
-                .post(`${process.env.PROD_API_URL}/gift/issued/pub`, {
-                    phoneNumber: sendingPhoneNumber,
-                    productNumber: productNumber,
-                })
-                .then(async (r) => {
-                    if (r.data.isSuccess) {
-                        debug.axios('sendGift Result', r.data.payload.CPN_LIST.CPN)
-                        await DB.UsersGiftSendLog.create({
-                            identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
-                            surveyCode: surveyCode,
-                            orderCode: orderCode,
-                            cooperNumber: r.data.payload.CPN_LIST.CPN.NO_CPN._text,
-                            status: 1,
-                            phoneCode: phoneCode,
-                        })
-                    } else {
-                        debug.error('sendGift Error', r.data)
-                    }
-                })
+        debug.axios('existUserGiftList', existUserGiftList)
+        if (existUserGiftList !== null && existUserGiftList !== undefined) {
+            if (existUserGiftList.buying > existUserGiftList.sending) {
+                const sendGift = await axios
+                    .post(`${process.env.PROD_API_URL}/gift/issued/pub`, {
+                        phoneNumber: sendingPhoneNumber,
+                        productNumber: productNumber,
+                    })
+                    .then(async (r) => {
+                        if (r.data.isSuccess) {
+                            debug.axios('sendGift Result', r.data.payload.CPN_LIST.CPN)
+                            await DB.UsersGiftSendLog.create({
+                                identifyCode: Buffer.from(existEachAnswerInfo.identifyCode, 'hex'),
+                                surveyCode: surveyCode,
+                                orderCode: orderCode,
+                                cooperNumber: r.data.payload.CPN_LIST.CPN.NO_CPN._text,
+                                status: 1,
+                                phoneCode: phoneCode,
+                            })
+                        } else {
+                            debug.error('sendGift Error', r.data)
+                        }
+                    })
+            }
         }
 
         return res.status(200).json({

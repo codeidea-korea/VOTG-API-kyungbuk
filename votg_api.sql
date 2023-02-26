@@ -245,7 +245,7 @@ CREATE TABLE SurveyOnlineAnswers
     PRIMARY KEY (IdentifyCode, surveyCode)
 ) charset = utf8mb3;
 
-SELECT * FROM UsersSurveyOnlineLayouts WHERE surveyCode='e68f0fab2946302b';
+SELECT * FROM UsersSurveyOnlineLayouts WHERE surveyCode='8f0a1a234c562d97';
 SELECT * FROM SurveyOnlineAnswers WHERE DATE(createdAt) BETWEEN '2023-02-25' AND '2023-02-26';
 
 SELECT * FROM SurveyOnlineAnswers WHERE surveyCode = '1f0f6c8cd554da70c596680cf1ee044c';
