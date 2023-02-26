@@ -1210,8 +1210,8 @@ router.post('/survey/answer/eachurl', async (req, res) => {
     // console.log(req)
     try {
         const { eachUrl, phoneCode, surveyCode, answerJson, orderCode, productNumber } = req.body
-        const sendingPhoneNumber = decipher(phoneCode)
-        debug.request('decipher(phoneCode)', sendingPhoneNumber)
+        // const sendingPhoneNumber = decipher(phoneCode)
+        // debug.request('decipher(phoneCode)', sendingPhoneNumber)
 
         const updateEachAnswer = await DB.SurveyAnswersEachUrl.update(
             {
