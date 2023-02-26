@@ -760,6 +760,259 @@ router.post('/survey/distribute/change/adm', async (req, res) => {
     }
 })
 
+// [생성자 호출 - post] 관리자 모드 배포 신규
+router.post('/survey/distribute/change/admin', async (req, res) => {
+    // console.log(req)
+    try {
+        const {
+            UserCode,
+            surveyCode,
+            // surveyType,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+            fileCode,
+        } = req.body
+
+        // console.log('UsersSurveyOnlineLayouts - Update', JSON.parse(surveyJson).info?.title)
+        const updateSurveyLoineLayouts = await DB.UsersSurveyOnlineLayouts.update(
+            {
+                status: 1,
+                // surveyType: surveyType,
+                survey: surveyJson.toString(),
+                sendType: sendType,
+                sendContact: sendContact.toString(),
+                sendURL: sendURL,
+                thumbnail: thumbnail,
+                fileCode: fileCode,
+            },
+            { where: { surveyCode: surveyCode } },
+        )
+        //SENS
+        const contactJson = JSON.parse(sendContact)
+        // console.log('contactJson', contactJson)
+        if (contactJson.phoneNumbers !== undefined) {
+            // await DB.SurveyAnswersEachUrl.update(
+            //     {
+            //         status: 4,
+            //     },
+            //     {
+            //         where: {
+            //             surveyCode: surveyCode,
+            //         },
+            //     },
+            // )
+
+            const checkDistributeBefore = await DB.SurveyAnswersEachUrl.findAll({
+                where: {
+                    surveyCode: surveyCode,
+                },
+                attributes: ['identifyCode', 'url', 'phoneCode'],
+            })
+
+            const resultExistPhone = checkDistributeBefore?.map((item, pIndex) => {
+                const hashedPhone = decipher(item.phoneCode)
+                return hashedPhone
+            })
+
+            contactJson.phoneNumbers.map(async (phone, pIndex) => {
+                let resultIdentifyCode = ''
+                let resultEachUrl = ''
+                // console.log('phoneNumbers', phone)
+                // cipher를 통해 생성된 전화번호가 기존의 배포 데이터로서 존재하는지 체크
+                // phoneCode,surveyCode 가 일치하는 정보가 있을 경우는 생성 x
+                // 기존 설문조사 생성 정보들의 phoneCode 를 decipher로 복호화하여
+                // 발송하는 번호와 동일한지 체크
+                // console.log('decipher(phoneCode)', decipher(phoneCode))
+                // 동일할 경우 identifyCode 갱신 X
+
+                //기존데이터가 존재할 경우 처리
+                if (resultExistPhone.length > 0) {
+                    debug.axios('resultExistPhone', resultExistPhone)
+                    if (resultExistPhone.includes(phone)) {
+                        debug.axios('phone', phone)
+                        // console.log('hashedPhone', hashedPhone)
+                        // console.log('Exist item', item.identifyCode)
+
+                        const filteredData = checkDistributeBefore.filter(
+                            (item) => decipher(item.phoneCode) == phone,
+                        )
+                        debug.axios('filteredData.url', filteredData[0].url)
+                        resultEachUrl = filteredData[0].url
+                        const createSurveyDocuments = await DB.SurveyAnswersEachUrl.update(
+                            {
+                                status: 5,
+                            },
+                            {
+                                where: {
+                                    identifyCode: filteredData[0].identifyCode,
+                                    url: filteredData[0].url,
+                                    surveyCode: surveyCode,
+                                },
+                            },
+                        )
+                    }
+                }
+                // 기존데이터가 존재하지 않을때 처리
+                else {
+                    resultIdentifyCode = Buffer.from(uuid().toString().replace(/-/g, ''), 'hex')
+                    resultEachUrl = createResourceCode(8)
+                    const phoneCode = cipher(phone)
+                    const createSurveyDocuments = await DB.SurveyAnswersEachUrl.create({
+                        identifyCode: resultIdentifyCode,
+                        url: resultEachUrl,
+                        phoneCode: phoneCode,
+                        surveyCode: surveyCode,
+                        answer: `[]`,
+                        status: 0,
+                    })
+                }
+
+                if (sendType === 0) {
+                    const date = Date.now().toString()
+                    const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmac.update(method)
+                    hmac.update(space)
+                    hmac.update(url2)
+                    hmac.update(newLine)
+                    hmac.update(date)
+                    hmac.update(newLine)
+                    hmac.update(NCP_accessKey)
+                    const hash = hmac.finalize()
+                    const signature = hash.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: url,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signature,
+                        },
+                        data: {
+                            type: 'SMS',
+                            contentType: 'COMM',
+                            countryCode: '82',
+                            from: NCP_fromNumber,
+                            content: `${JSON.parse(surveyJson).info?.title.substr(
+                                0,
+                                13,
+                            )}\n바로가기\nhttps://survey.gift${sendURL}?c=${resultEachUrl}`,
+                            // content: `소상공인시장진흥공단 수혜업체 만족도조사\n\n안녕하세요 소상공인시장진흥공단은 소상공인 발전을 위하여 만족도 조사를 실시하고 있으니 꼭 참여 부탁드립니다.\n(조사는 에이치앤컨설팅과 뷰즈온더고서베이를 통해 수행됩니다)\n\nhttps://survey.gift${sendURL}`,
+                            // content: `[뷰즈온더고]\n테스터 참여하기\n접속링크:https://viewsonthego.com/auth/login\n아이디:tester@votg.com\n비밀번호:tester00!\n\n설문조사 응답바로가기\nhttps://survey.gift${sendURL}`,
+                            messages: [
+                                {
+                                    to: `${phone}`,
+                                },
+                            ],
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.response.data)
+                            // return res.status(error.response.status).json({
+                            //     isSuccess: false,
+                            //     code: error.response.status,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error.response.data,
+                            // })
+                        })
+                } else if (sendType === 1) {
+                    const date = Date.now().toString()
+                    const hmacKakao = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmacKakao.update(method)
+                    hmacKakao.update(space)
+                    hmacKakao.update(urlKakao2)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(date)
+                    hmacKakao.update(newLine)
+                    hmacKakao.update(NCP_accessKey)
+                    const hashKakao = hmacKakao.finalize()
+                    const signatureKakao = hashKakao.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: urlKakao,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signatureKakao,
+                        },
+                        data: {
+                            plusFriendId: '@뷰즈온더고',
+                            templateCode: 'votgalim01',
+                            messages: [
+                                {
+                                    countryCode: '82',
+                                    to: `${phone}`,
+                                    content: `안녕하세요, 뷰즈온더고입니다. 아래의 버튼을 클릭해 설문조사를 진행해주세요.`,
+                                    buttons: [
+                                        {
+                                            type: 'WL',
+                                            name: '설문조사 바로가기',
+                                            linkMobile: `https://survey.gift${sendURL}?c=${resultEachUrl}`,
+                                            linkPc: `https://survey.gift${sendURL}?c=${resultEachUrl}`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.data)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
+                }
+            })
+        }
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Change & Dstribute Success',
+            payload: {
+                surveyCode,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 // [생성자 호출 - get] 설문지 생성/수정 단계에서 설문지 정보 로드
 router.get('/survey/loaded', async (req, res) => {
     // console.log(req)
@@ -835,11 +1088,11 @@ router.get('/survey/answer', async (req, res) => {
 router.get('/survey/answer/eachurl', async (req, res) => {
     // console.log(req)
     try {
-        var identifyCode = req.query.identifyCode
+        var eachUrl = req.query.eachUrl
         var surveyCode = req.query.surveyCode
         const exSurvey = await DB.SurveyAnswersEachUrl.findOne({
             where: {
-                identifyCode: identifyCode,
+                eachUrl: eachUrl,
                 surveyCode: surveyCode,
             },
             attributes: ['status', 'identifyCode', 'phoneCode', 'surveyCode'],

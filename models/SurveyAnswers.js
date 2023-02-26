@@ -8,6 +8,12 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       comment: "응답자 고유식별자"
     },
+    url: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      defaultValue: "",
+      comment: "설문조사 구분용 URL"
+    },
     phoneCode: {
       type: DataTypes.STRING(255),
       allowNull: true

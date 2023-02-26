@@ -190,6 +190,8 @@ CREATE OR REPLACE TABLE SurveyAnswers
     PRIMARY KEY (IdentifyCode, fileCode)
 ) charset = utf8mb3;
 
+
+ALTER TABLE SurveyAnswers ADD url varchar(255) not null default '' comment '설문조사 구분용 URL' after identifyCode;
 ALTER TABLE SurveyAnswers DROP phoneCode;
 ALTER TABLE SurveyAnswers ADD phoneCode varchar(255) not null default '' comment '응답자 휴대전화번호 식별자' after identifyCode;
 ALTER TABLE SurveyAnswers MODIFY COLUMN phoneCode varchar(255) after identifyCode;
@@ -211,26 +213,10 @@ CALL SurveyOnlineAnswersInsert();
 DROP TABLE SurveyAnswersEachUrl;
 CREATE OR REPLACE TABLE SurveyAnswersEachUrl
 (
-    identifyCode    varchar(255)                                    null comment '응답자 고유식별자',
-    phoneCode    varchar(255)                                  null comment '응답자 휴대전화번호 식별자',
-	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
-    answer      JSON                                    not null comment '변경된 설문 데이터',
-	status      int         default 0                   not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료',
-    createdAt   timestamp   default current_timestamp() not null comment '생성일',
-    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
-    deletedAt   timestamp                                   null comment '삭제일',
-    PRIMARY KEY (identifyCode, surveyCode)
-) charset = utf8mb3;
-
-ALTER TABLE SurveyAnswersEachUrl MODIFY COLUMN status int default 0 not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료';
-
-
-DROP TABLE SurveyOnlineAnswers;
-CREATE OR REPLACE TABLE SurveyOnlineAnswers
-(
     identifyCode    binary(16)                               null comment '응답자 고유식별자',
-    phoneCode   varchar(255) not null default '' comment '응답자 휴대전화번호 식별자',
-	surveyCode    varchar(255)                             not null comment '파일 업로드 고유넘버',
+	surveyCode      varchar(255)                             not null comment '파일 업로드 고유넘버',
+	url             varchar(255) not null default '' comment '설문조사 개별 구분용 URL',
+	phoneCode       varchar(255) not null default '' comment '응답자 휴대전화번호 식별자',
 	status      int          not null default 0  comment '0:응답전, 1:응답중, 2:응답완료, 4:만료',
     answer      JSON                                    not null comment '변경된 설문 데이터',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
@@ -239,9 +225,33 @@ CREATE OR REPLACE TABLE SurveyOnlineAnswers
     PRIMARY KEY (IdentifyCode, surveyCode)
 ) charset = utf8mb3;
 
+ALTER TABLE SurveyAnswersEachUrl MODIFY COLUMN status int default 0 not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료';
+
+
+DROP TABLE SurveyOnlineAnswers;
+CREATE TABLE SurveyOnlineAnswers
+(
+    identifyCode    binary(16)                               null comment '응답자 고유식별자',
+    phoneCode       varchar(255) not null default '' comment '응답자 휴대전화번호 식별자',
+	surveyCode      varchar(255)                             not null comment '파일 업로드 고유넘버',
+	url             varchar(255) not null default '' comment '설문조사 개별 구분용 URL',
+	phoneCode       varchar(255) not null default '' comment '응답자 휴대전화번호 식별자',
+	status      int          not null default 0  comment '0:응답전, 1:응답중, 2:응답완료, 4:만료',
+    answer      JSON                                    not null comment '변경된 설문 데이터',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp                                   null on update current_timestamp() comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    PRIMARY KEY (IdentifyCode, surveyCode)
+) charset = utf8mb3;
+
+SELECT * FROM SurveyOnlineAnswers WHERE DATE(createdAt) BETWEEN '2023-02-21' AND '2023-02-26';
+
 SELECT * FROM SurveyOnlineAnswers WHERE surveyCode = '1f0f6c8cd554da70c596680cf1ee044c';
 
-ALTER TABLE SurveyOnlineAnswers ADD phoneCode varchar(255) not null default '' comment '응답자 휴대전화번호 식별자' after identifyCode;
+ALTER TABLE SurveyOnlineAnswers DROP url;
+ALTER TABLE SurveyOnlineAnswers ADD url varchar(255) not null default '' comment '설문조사 개별 구분용 URL' after surveyCode;
+ALTER TABLE SurveyOnlineAnswers DROP phoneCode;
+ALTER TABLE SurveyOnlineAnswers ADD phoneCode varchar(255) not null default '' comment '응답자 휴대전화번호 식별자' after url;
 ALTER TABLE SurveyOnlineAnswers ADD status    int          not null default 0  comment '0:응답전, 1:응답중, 2:응답완료' after surveyCode;
 ALTER TABLE SurveyOnlineAnswers MODIFY COLUMN status int default 0 not null comment '0:응답전, 1:응답중, 2:응답완료, 4:만료';
 

@@ -7,17 +7,23 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       comment: "응답자 고유식별자"
     },
-    phoneCode: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      defaultValue: "",
-      comment: "응답자 휴대전화번호 식별자"
-    },
     surveyCode: {
       type: DataTypes.STRING(255),
       allowNull: false,
       primaryKey: true,
       comment: "파일 업로드 고유넘버"
+    },
+    url: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      defaultValue: "",
+      comment: "설문조사 개별 구분용 URL"
+    },
+    phoneCode: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      defaultValue: "",
+      comment: "응답자 휴대전화번호 식별자"
     },
     status: {
       type: DataTypes.INTEGER,
