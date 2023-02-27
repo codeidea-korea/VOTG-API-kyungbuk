@@ -1390,34 +1390,4 @@ router.get('/survey/answers/result', async (req, res) => {
     }
 })
 
-router.delete('/survey/delete', async (req, res) => {
-    try {
-        var UserCode = Buffer.from(req.query.surveyCode, 'hex')
-        var surveyCode = req.query.surveyCode
-        const deleteSurvey = await DB.UsersSurveyOnlineLayouts.destroy({
-            where: {
-                UserCode: UserCode,
-                surveyCode: surveyCode,
-            },
-        })
-        // console.log('UsersSurveyDocument', exSurvey)
-        return res.status(200).json({
-            isSuccess: true,
-            code: 200,
-            msg: 'Survey Delete Success',
-            payload: {
-                ...deleteSurvey,
-            },
-        })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).json({
-            isSuccess: false,
-            code: 400,
-            msg: 'Bad Request',
-            payload: error,
-        })
-    }
-})
-
 module.exports = router

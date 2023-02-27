@@ -246,6 +246,7 @@ CREATE TABLE SurveyOnlineAnswers
 ) charset = utf8mb3;
 
 SELECT * FROM UsersSurveyOnlineLayouts WHERE surveyCode='8f0a1a234c562d97';
+SELECT * FROM UsersSurveyOnlineLayouts WHERE UserCode=(SELECT code FROM Users WHERE email='testers@votg.com');
 SELECT * FROM SurveyOnlineAnswers WHERE surveyCode='8f0a1a234c562d97';
 SELECT * FROM SurveyOnlineAnswers WHERE DATE(createdAt) BETWEEN '2023-02-25' AND '2023-02-26' ;
 
