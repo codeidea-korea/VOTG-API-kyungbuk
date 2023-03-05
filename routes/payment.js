@@ -498,7 +498,7 @@ router.post('/payBilling', async (req, res) => {
             paymentResult.data
 
         if (RESULTCODE === '0000') {
-            if (orderType == 0 || orderType == 1) {
+            if (orderType == 0) {
                 await DB.UsersPaymentRequest.create({
                     UserCode: Buffer.from(UserCode, 'hex'),
                     issuedAt: Date.now(),
@@ -512,6 +512,43 @@ router.post('/payBilling', async (req, res) => {
                     orderCount: orderCount,
                     productNumber: productNumber,
                 })
+                if (orderName.includes('Starter')) {
+                    await DB.Users.update(
+                        {
+                            status: 3,
+                            type: 0,
+                        },
+                        {
+                            where: {
+                                code: Buffer.from(UserCode, 'hex'),
+                            },
+                        },
+                    )
+                } else if (orderName.includes('Standard')) {
+                    await DB.Users.update(
+                        {
+                            status: 3,
+                            type: 1,
+                        },
+                        {
+                            where: {
+                                code: Buffer.from(UserCode, 'hex'),
+                            },
+                        },
+                    )
+                } else if (orderName.includes('Professional')) {
+                    await DB.Users.update(
+                        {
+                            status: 3,
+                            type: 2,
+                        },
+                        {
+                            where: {
+                                code: Buffer.from(UserCode, 'hex'),
+                            },
+                        },
+                    )
+                }
             } else if (orderType == 2) {
                 const UsersGiftList = await DB.UsersGiftList.create({
                     UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
@@ -650,14 +687,14 @@ router.get('/checkout', async (req, res) => {
             // order: [['createdAt', 'DESC']],
         })
 
-        debug.axios('exOrderTypeCheck', exOrderTypeCheck.orderType)
+        debug.axios('exOrderTypeCheck', exOrderTypeCheck)
         if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
             const exOrderUpdate = await DB.UsersPaymentRequest.update(
                 {
                     issuedAt: Date.now(),
                     status: 1,
-                    registerCode: req.query.CARDNO,
-                    billingUid: req.query.DAOUTRX,
+                    registerCode: 'demo-CARDNO',
+                    billingUid: 'demo-DAOUTRX',
                 },
                 {
                     where: {
@@ -667,6 +704,43 @@ router.get('/checkout', async (req, res) => {
             ).then((result) => {
                 console.log('result', result)
             })
+            if (exOrderTypeCheck.orderName.includes('Starter')) {
+                await DB.Users.update(
+                    {
+                        status: 3,
+                        type: 0,
+                    },
+                    {
+                        where: {
+                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                        },
+                    },
+                )
+            } else if (exOrderTypeCheck.orderName.includes('Standard')) {
+                await DB.Users.update(
+                    {
+                        status: 3,
+                        type: 1,
+                    },
+                    {
+                        where: {
+                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                        },
+                    },
+                )
+            } else if (exOrderTypeCheck.orderName.includes('Professional')) {
+                await DB.Users.update(
+                    {
+                        status: 3,
+                        type: 2,
+                    },
+                    {
+                        where: {
+                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                        },
+                    },
+                )
+            }
         } else if (exOrderTypeCheck.orderType == 2) {
             const UsersGiftList = await DB.UsersGiftList.create({
                 UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
@@ -722,7 +796,7 @@ router.get('/checkout/demo', async (req, res) => {
             // order: [['createdAt', 'DESC']],
         })
 
-        debug.axios('exOrderTypeCheck', exOrderTypeCheck.orderType)
+        debug.axios('exOrderTypeCheck', exOrderTypeCheck)
         if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
             const exOrderUpdate = await DB.UsersPaymentRequest.update(
                 {
@@ -739,6 +813,43 @@ router.get('/checkout/demo', async (req, res) => {
             ).then((result) => {
                 console.log('result', result)
             })
+            if (exOrderTypeCheck.orderName.includes('Starter')) {
+                await DB.Users.update(
+                    {
+                        status: 3,
+                        type: 0,
+                    },
+                    {
+                        where: {
+                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                        },
+                    },
+                )
+            } else if (exOrderTypeCheck.orderName.includes('Standard')) {
+                await DB.Users.update(
+                    {
+                        status: 3,
+                        type: 1,
+                    },
+                    {
+                        where: {
+                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                        },
+                    },
+                )
+            } else if (exOrderTypeCheck.orderName.includes('Professional')) {
+                await DB.Users.update(
+                    {
+                        status: 3,
+                        type: 2,
+                    },
+                    {
+                        where: {
+                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                        },
+                    },
+                )
+            }
         } else if (exOrderTypeCheck.orderType == 2) {
             const UsersGiftList = await DB.UsersGiftList.create({
                 UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),

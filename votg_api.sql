@@ -1,5 +1,5 @@
 USE votg_api_dev;
-
+select @@global.sql_mode;
 #MAKE UUID
 SELECT UUID();
 SELECT REPLACE(UUID(),'-','');
@@ -65,7 +65,7 @@ CREATE OR REPLACE TABLE Users
     nickname    varchar(50)                             not null comment '닉네임',
     mode        int         default 0                   not null comment '0:일반사용자, 1:패널가입, 2:관리자, 3:개발자',
 	status      int         default 0                   not null comment '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
-	type        int         default 0                   not null comment '0:Free, 1:Basic, 2:Pro, 3:Develop',
+	type        int         default 0                   not null comment '0:Stater, 1:Standard, 2:Professional, 3:Dev',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp   on update current_timestamp()   null comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',
@@ -246,7 +246,7 @@ CREATE TABLE SurveyOnlineAnswers
 ) charset = utf8mb3;
 
 SELECT * FROM UsersSurveyOnlineLayouts WHERE surveyCode='8f0a1a234c562d97';
-SELECT * FROM UsersSurveyOnlineLayouts WHERE UserCode=(SELECT code FROM Users WHERE email='testers@votg.com');
+SELECT * FROM UsersSurveyOnlineLayouts WHERE UserCode=(SELECT code FROM Users WHERE email='utxtion@me.com');
 SELECT * FROM SurveyOnlineAnswers WHERE surveyCode='8f0a1a234c562d97';
 SELECT * FROM SurveyOnlineAnswers WHERE DATE(createdAt) BETWEEN '2023-02-25' AND '2023-02-26' ;
 
@@ -653,13 +653,31 @@ CREATE OR REPLACE TABLE PanelsQuestionAnswer
 
 
 # 게시판 - 공지
+DROP TABLE BoardExample;
+CREATE OR REPLACE TABLE BoardExample
+(
+    id          int                                     auto_increment primary key,
+    code        varchar(255)                              not null comment '글 고유식별자',
+    title       varchar(255)                             not null comment '이름',
+    contents    longtext                                not null comment '내용',
+    createdAt   timestamp   default current_timestamp() not null comment '생성일',
+    updatedAt   timestamp   on update current_timestamp()   null comment '수정일',
+    deletedAt   timestamp                                   null comment '삭제일',
+    OwnerCode   binary(16)                                  null comment '사용자 고유식별자',
+    constraint code unique (code),
+    constraint fk_board_example_users_code foreign key (OwnerCode) references Users (code) on update cascade on delete set null
+) charset = utf8mb3;
+
+ALTER TABLE BoardExample CHANGE contents contents longtext NOT NULL;
+
+# 게시판 - 공지
 DROP TABLE BoardNotice;
 CREATE OR REPLACE TABLE BoardNotice
 (
     id          int                                     auto_increment primary key,
     code        varchar(255)                              not null comment '글 고유식별자',
     title       varchar(255)                             not null comment '이름',
-    contents    varchar(255)                             not null comment '내용',
+    contents    longtext                                not null comment '내용',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp   on update current_timestamp()   null comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',
@@ -667,6 +685,8 @@ CREATE OR REPLACE TABLE BoardNotice
     constraint code unique (code),
     constraint fk_board_notice_users_code foreign key (OwnerCode) references Users (code) on update cascade on delete set null
 ) charset = utf8mb3;
+
+ALTER TABLE BoardNotice CHANGE contents contents longtext NOT NULL;
 
 # Board Notice Example.
 
@@ -677,7 +697,7 @@ CREATE OR REPLACE TABLE BoardLearning
     id          int                                     auto_increment primary key,
     code        varchar(255)                              not null comment '글 고유식별자',
     title       varchar(255)                             not null comment '이름',
-    contents    varchar(255)                             not null comment '내용',
+    contents    longtext                                not null comment '내용',
     createdAt   timestamp   default current_timestamp() not null comment '생성일',
     updatedAt   timestamp   on update current_timestamp()   null comment '수정일',
     deletedAt   timestamp                                   null comment '삭제일',
@@ -685,3 +705,5 @@ CREATE OR REPLACE TABLE BoardLearning
     constraint code unique (code),
     constraint fk_board_learing_users_code foreign key (OwnerCode) references Users (code) on update cascade on delete set null
 ) charset = utf8mb3;
+
+ALTER TABLE BoardLearning CHANGE contents contents longtext NOT NULL;

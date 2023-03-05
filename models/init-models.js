@@ -1,4 +1,5 @@
 var DataTypes = require("sequelize").DataTypes;
+var _BoardExample = require("./BoardExample");
 var _BoardLearning = require("./BoardLearning");
 var _BoardNotice = require("./BoardNotice");
 var _Organizations = require("./Organizations");
@@ -27,6 +28,7 @@ var _UsersSyncSNS = require("./UsersSyncSNS");
 var _UsersUploadLogs = require("./UsersUploadLogs");
 
 function initModels(sequelize) {
+  var BoardExample = _BoardExample(sequelize, DataTypes);
   var BoardLearning = _BoardLearning(sequelize, DataTypes);
   var BoardNotice = _BoardNotice(sequelize, DataTypes);
   var Organizations = _Organizations(sequelize, DataTypes);
@@ -72,6 +74,8 @@ function initModels(sequelize) {
   PanelsQuestionList.hasMany(PanelsQuestionAnswer, { as: "PanelsQuestionAnswers", foreignKey: "QuestionCode"});
   ServicesCustomers.belongsTo(Services, { as: "ServiceCode_Service", foreignKey: "ServiceCode"});
   Services.hasMany(ServicesCustomers, { as: "ServicesCustomers", foreignKey: "ServiceCode"});
+  BoardExample.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
+  Users.hasMany(BoardExample, { as: "BoardExamples", foreignKey: "OwnerCode"});
   BoardLearning.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
   Users.hasMany(BoardLearning, { as: "BoardLearnings", foreignKey: "OwnerCode"});
   BoardNotice.belongsTo(Users, { as: "OwnerCode_User", foreignKey: "OwnerCode"});
@@ -106,6 +110,7 @@ function initModels(sequelize) {
   Users.hasMany(UsersUploadLogs, { as: "UsersUploadLogs", foreignKey: "UserCode"});
 
   return {
+    BoardExample,
     BoardLearning,
     BoardNotice,
     Organizations,

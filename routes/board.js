@@ -74,6 +74,39 @@ router.post('/upload', cors(), upload.single('file'), async (req, res) => {
 })
 
 /**
+ *  EXAMP 글쓰기
+ */
+router.post('/example/save', async (req, res) => {
+    // console.log(req)
+    try {
+        const { UserCode, BoardCode, title, contents } = req.body
+        const createBoardExample = await DB.BoardExample.create({
+            code: BoardCode,
+            title: title,
+            contents: contents,
+            OwnerCode: Buffer.from(UserCode, 'hex'),
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Board Example Save Success',
+            payload: {
+                createBoardExample,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+/**
  *  NOTICE 글쓰기
  */
 router.post('/notice/save', async (req, res) => {
@@ -249,21 +282,37 @@ router.post('/learn/save', async (req, res) => {
     // console.log(req)
     try {
         const { UserCode, BoardCode, title, contents } = req.body
-        const createBoardLearning = await DB.BoardLearning.create({
-            code: BoardCode,
-            title: title,
-            contents: contents,
-            OwnerCode: Buffer.from(UserCode, 'hex'),
-        })
+        // const createBoardLearning = await DB.BoardLearning.create({
+        //     code: BoardCode,
+        //     title: title,
+        //     contents: contents,
+        //     OwnerCode: Buffer.from(UserCode, 'hex'),
+        // })
 
         return res.status(200).json({
             isSuccess: true,
             code: 200,
             msg: 'Board Learning Save Success',
             payload: {
-                createBoardLearning,
+                contents,
             },
         })
+
+        // const createBoardLearning = await DB.BoardLearning.create({
+        //     code: BoardCode,
+        //     title: title,
+        //     contents: contents,
+        //     OwnerCode: Buffer.from(UserCode, 'hex'),
+        // })
+
+        // return res.status(200).json({
+        //     isSuccess: true,
+        //     code: 200,
+        //     msg: 'Board Learning Save Success',
+        //     payload: {
+        //         createBoardLearning,
+        //     },
+        // })
     } catch (error) {
         console.error(error)
         return res.status(400).json({

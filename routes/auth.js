@@ -123,8 +123,8 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
             password: hashedPassword,
             nickname: req.body.email.substring(0, req.body.email.indexOf('@')),
             mode: 0, // '0:사용자, 1:편집자, 2:관리자, 3:개발자',
-            status: 3, // '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
-            type: 0, // '0:일반, 1:학생, 2:개인, 3:법인',
+            status: 0, // '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
+            type: 0, // '0:Stater, 1:Standard, 2:Professional, 3:Dev',
         })
         const userDetail = await DB.UsersDetail.create({
             UserCode: Buffer.from(createUUID, 'hex'),
@@ -179,7 +179,7 @@ router.post('/user', async (req, res, next) => {
                 phone: phone,
                 email: email,
             },
-            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'type'],
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'status', 'type'],
         })
         console.log('user', user)
         const detail = await DB.UsersDetail.findOne({
