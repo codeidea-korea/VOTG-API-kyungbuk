@@ -693,8 +693,8 @@ router.get('/checkout', async (req, res) => {
                 {
                     issuedAt: Date.now(),
                     status: 1,
-                    registerCode: 'demo-CARDNO',
-                    billingUid: 'demo-DAOUTRX',
+                    registerCode: req.query.CARDNO,
+                    billingUid: req.query.DAOUTRX,
                 },
                 {
                     where: {
