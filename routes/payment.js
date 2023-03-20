@@ -613,7 +613,7 @@ router.post('/cachedBilling', async (req, res) => {
         const { UserCode, orderCode, orderType, orderName, price, orderCount, productNumber } =
             req.body
         Cache.del(orderCode)
-        Cache.put(orderCode, false, 1000 * 60 * 5)
+        Cache.put(orderCode, 'INIT', 1000 * 60 * 5)
         debug.axios('cachedBilling', req.body)
         // debug.axios('orderCode', orderCode)
         const exOrderCode = await DB.UsersPaymentRequest.findAll({
@@ -677,98 +677,102 @@ router.get('/checkout', async (req, res) => {
         debug.axios('checkout', req.query)
         // debug.axios('checkout', req.query.USERID)
         // debug.axios('checkout', req.query.ORDERNO)
-        Cache.put(req.query.ORDERNO, true, 1000 * 30)
-
-        const exOrderTypeCheck = await DB.UsersPaymentRequest.findOne({
-            where: {
-                orderCode: req.query.ORDERNO,
-            },
-            // attributes: { exclude: ['password'] },
-            // order: [['createdAt', 'DESC']],
-        })
-
-        debug.axios('exOrderTypeCheck', exOrderTypeCheck)
-        if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
-            const exOrderUpdate = await DB.UsersPaymentRequest.update(
-                {
-                    issuedAt: Date.now(),
-                    status: 1,
-                    registerCode: req.query.CARDNO,
-                    billingUid: req.query.DAOUTRX,
+        if (req.query.PAYMETHOD.includes('FAIL')) {
+            Cache.put(req.query.ORDERNO, false, 1000 * 30)
+            return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
+        } else {
+            const exOrderTypeCheck = await DB.UsersPaymentRequest.findOne({
+                where: {
+                    orderCode: req.query.ORDERNO,
                 },
-                {
-                    where: {
-                        orderCode: req.query.ORDERNO,
-                    },
-                },
-            ).then((result) => {
-                console.log('result', result)
+                // attributes: { exclude: ['password'] },
+                // order: [['createdAt', 'DESC']],
             })
-            if (exOrderTypeCheck.orderName.includes('Starter')) {
-                await DB.Users.update(
+
+            debug.axios('exOrderTypeCheck', exOrderTypeCheck)
+            if (exOrderTypeCheck.orderType == 0 || exOrderTypeCheck.orderType == 1) {
+                const exOrderUpdate = await DB.UsersPaymentRequest.update(
                     {
-                        status: 3,
-                        type: 0,
+                        issuedAt: Date.now(),
+                        status: 1,
+                        registerCode: req.query.CARDNO,
+                        billingUid: req.query.DAOUTRX,
                     },
                     {
                         where: {
-                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                            orderCode: req.query.ORDERNO,
                         },
                     },
-                )
-            } else if (exOrderTypeCheck.orderName.includes('Standard')) {
-                await DB.Users.update(
+                ).then((result) => {
+                    console.log('result', result)
+                })
+                if (exOrderTypeCheck.orderName.includes('Starter')) {
+                    await DB.Users.update(
+                        {
+                            status: 3,
+                            type: 0,
+                        },
+                        {
+                            where: {
+                                code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                            },
+                        },
+                    )
+                } else if (exOrderTypeCheck.orderName.includes('Standard')) {
+                    await DB.Users.update(
+                        {
+                            status: 3,
+                            type: 1,
+                        },
+                        {
+                            where: {
+                                code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                            },
+                        },
+                    )
+                } else if (exOrderTypeCheck.orderName.includes('Professional')) {
+                    await DB.Users.update(
+                        {
+                            status: 3,
+                            type: 2,
+                        },
+                        {
+                            where: {
+                                code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                            },
+                        },
+                    )
+                }
+            } else if (exOrderTypeCheck.orderType == 2) {
+                const UsersGiftList = await DB.UsersGiftList.create({
+                    UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                    status: '1',
+                    orderCode: exOrderTypeCheck.orderCode,
+                    orderName: exOrderTypeCheck.orderName,
+                    productNumber: exOrderTypeCheck.productNumber,
+                    buying: exOrderTypeCheck.orderCount,
+                    sending: 0,
+                })
+                const exOrderUpdate = await DB.UsersPaymentRequest.update(
                     {
-                        status: 3,
-                        type: 1,
+                        issuedAt: Date.now(),
+                        status: 1,
+                        registerCode: req.query.CARDNO,
+                        billingUid: req.query.DAOUTRX,
                     },
                     {
                         where: {
-                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
+                            orderCode: req.query.ORDERNO,
                         },
                     },
-                )
-            } else if (exOrderTypeCheck.orderName.includes('Professional')) {
-                await DB.Users.update(
-                    {
-                        status: 3,
-                        type: 2,
-                    },
-                    {
-                        where: {
-                            code: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
-                        },
-                    },
-                )
+                ).then((result) => {
+                    console.log('result', result)
+                })
             }
-        } else if (exOrderTypeCheck.orderType == 2) {
-            const UsersGiftList = await DB.UsersGiftList.create({
-                UserCode: Buffer.from(exOrderTypeCheck.UserCode, 'hex'),
-                status: '1',
-                orderCode: exOrderTypeCheck.orderCode,
-                orderName: exOrderTypeCheck.orderName,
-                productNumber: exOrderTypeCheck.productNumber,
-                buying: exOrderTypeCheck.orderCount,
-                sending: 0,
-            })
-            const exOrderUpdate = await DB.UsersPaymentRequest.update(
-                {
-                    issuedAt: Date.now(),
-                    status: 1,
-                    registerCode: req.query.CARDNO,
-                    billingUid: req.query.DAOUTRX,
-                },
-                {
-                    where: {
-                        orderCode: req.query.ORDERNO,
-                    },
-                },
-            ).then((result) => {
-                console.log('result', result)
-            })
-        }
 
-        return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
+            Cache.put(req.query.ORDERNO, true, 1000 * 30)
+            return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
+        }
     } catch (error) {
         console.error(error)
         return res.status(400).json({
