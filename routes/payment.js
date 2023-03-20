@@ -678,6 +678,22 @@ router.get('/checkout', async (req, res) => {
         // debug.axios('checkout', req.query.USERID)
         // debug.axios('checkout', req.query.ORDERNO)
         if (req.query.PAYMETHOD.includes('FAIL')) {
+            const exOrderUpdate = await DB.UsersPaymentRequest.update(
+                {
+                    issuedAt: Date.now(),
+                    status: 2,
+                    registerCode: req.query.CARDNO,
+                    billingUid: req.query.DAOUTRX,
+                },
+                {
+                    where: {
+                        orderCode: req.query.ORDERNO,
+                    },
+                },
+            ).then((result) => {
+                console.log('result', result)
+            })
+
             Cache.put(req.query.ORDERNO, false, 1000 * 30)
             return res.status(200).send(`<html><body><RESULT>SUCCESS</RESULT></body></html>`)
         } else {
