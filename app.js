@@ -78,15 +78,21 @@ if (prodChecker) {
     app.enable('trust proxy')
     app.use(morgan('combined'))
     app.use(helmet({ contentSecurityPolicy: false }))
+    app.use(
+        cors({
+            origin: [process.env.FRONT_URL, process.env.API_URL, process.env.SURVEY_URL],
+            credentials: true,
+        }),
+    )
     app.use(hpp())
 } else {
     app.use(morgan('dev'))
-    // app.use(
-    //     cors({
-    //         origin: [process.env.FRONT_URL, process.env.API_URL, process.env.SURVEY_URL],
-    //         credentials: true,
-    //     }),
-    // )
+    app.use(
+        cors({
+            origin: [process.env.FRONT_URL, process.env.API_URL, process.env.SURVEY_URL],
+            credentials: true,
+        }),
+    )
     app.use((req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*')
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
