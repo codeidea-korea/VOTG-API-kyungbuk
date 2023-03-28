@@ -80,7 +80,8 @@ const debug = require('../debug')
 const routeName = 'ONLINE'
 
 /* Upload Path */
-const upload = multer({ dest: 'public/uploads/' })
+// const upload = multer({ dest: 'public/uploads/' })s
+const upload_SurveyLogo = multer({ dest: 'public/uploads/surveyLogo' })
 
 /* Just Routing */
 router.post('/', async (req, res) => {
@@ -89,6 +90,40 @@ router.post('/', async (req, res) => {
         res.status(200).json({ code: code, name: name })
     } catch (error) {
         res.status(400).json({ result: '0', error: error })
+    }
+})
+
+router.post('/upload/logo', cors(), upload_SurveyLogo.single('file'), async (req, res) => {
+    // console.log(req)
+    try {
+        const { destination, encoding, fieldname, filename, mimetype, originalname, path } =
+            req.file
+        const { UserCode } = req.body
+        const createUploadLogs = await DB.UsersUploadLogs.create({
+            UserCode: Buffer.from(UserCode, 'hex'),
+            fileCode: filename,
+            fileName: originalname,
+            filePath: path,
+        })
+        console.log('createUploadLogs', createUploadLogs)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Upload Success',
+            payload: {
+                filename,
+                originalname,
+                filePath: path.substr(7), // Exclude => public/
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
     }
 })
 
