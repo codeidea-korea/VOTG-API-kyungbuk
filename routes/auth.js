@@ -593,6 +593,124 @@ router.post('/verifyNumberSENS', async (req, res) => {
     }
 })
 
+router.post('/change/info', async (req, res) => {
+    try {
+        const { UserCode, name, phone, email, mode, status } = req.body
+
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
+        })
+
+        // console.log('User', User)
+        debug.query('User', User)
+
+        if (User == null || User == undefined) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'No User',
+                payload: null,
+            })
+        }
+
+        const exUserEamil = await DB.Users.findAll({
+            where: {
+                email: email,
+                code: { [Op.ne]: Buffer.from(UserCode, 'hex') },
+            },
+            attributes: ['email'],
+        })
+        if (exUserEamil.length > 0) {
+            return res.status(402).json({
+                isSuccess: false,
+                code: 402,
+                msg: 'Exist User Eamil',
+                payload: exUserEamil,
+            })
+        }
+
+        const updateUsers = await DB.Users.update(
+            {
+                name: name,
+                phone: phone,
+                email: email,
+                mode: mode,
+                status: status,
+            },
+            {
+                where: { code: Buffer.from(UserCode, 'hex') },
+            },
+        )
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Users Update Success',
+            payload: {
+                updateUsers,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+router.post('/change/passwd', async (req, res) => {
+    try {
+        const { UserCode, password } = req.body
+
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
+        })
+
+        // console.log('User', User)
+        debug.query('User', User)
+
+        if (User == null || User == undefined) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'No User',
+                payload: null,
+            })
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12)
+
+        const updateUsers = await DB.Users.update(
+            {
+                password: hashedPassword,
+            },
+            {
+                where: { code: Buffer.from(UserCode, 'hex') },
+            },
+        )
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Users Passwd Update Success',
+            payload: {
+                updateUsers,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 /**
  *
  *
