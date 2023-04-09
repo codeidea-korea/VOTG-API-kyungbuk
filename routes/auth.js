@@ -293,19 +293,20 @@ router.get('/user/email', async (req, res, next) => {
             where: {
                 email: req.query.email,
             },
-            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode'],
+            attributes: ['phone', 'email'],
         })
         if (exUser) {
-            return res.status(403).json({
-                isSuccess: false,
-                code: 403,
+            return res.status(200).json({
+                isSuccess: true,
+                code: 200,
                 msg: 'exist',
-                payload: exUser.email,
+                payload: exUser,
             })
         }
-        res.status(200).json({
-            isSuccess: true,
-            code: 200,
+
+        return res.status(403).json({
+            isSuccess: false,
+            code: 403,
             msg: 'no exist',
             payload: exUser,
         })
@@ -663,10 +664,11 @@ router.post('/change/info', async (req, res) => {
 
 router.post('/change/passwd', async (req, res) => {
     try {
-        const { UserCode, password } = req.body
-
+        const { UserCode, email, phone, password } = req.body
         const User = await DB.Users.findOne({
-            where: { code: Buffer.from(UserCode, 'hex') },
+            where: UserCode
+                ? { code: Buffer.from(UserCode, 'hex') }
+                : { email: email, phone: phone },
         })
 
         // console.log('User', User)
@@ -688,7 +690,9 @@ router.post('/change/passwd', async (req, res) => {
                 password: hashedPassword,
             },
             {
-                where: { code: Buffer.from(UserCode, 'hex') },
+                where: UserCode
+                    ? { code: Buffer.from(UserCode, 'hex') }
+                    : { email: email, phone: phone },
             },
         )
 
