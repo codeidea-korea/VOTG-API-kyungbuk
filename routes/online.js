@@ -33,6 +33,8 @@ const url = `https://sens.apigw.ntruss.com/sms/v2/services/${NCP_serviceID}/mess
 const url2 = `/sms/v2/services/${NCP_serviceID}/messages`
 const urlKakao = `https://sens.apigw.ntruss.com/alimtalk/v2/services/${NCP_serviceKAKAO}/messages`
 const urlKakao2 = `/alimtalk/v2/services/${NCP_serviceKAKAO}/messages`
+const urlEmailEndpoint = `https://mail.apigw.ntruss.com/api/v1/mails`
+const urlEmailRequest = `/api/v1/mails`
 // const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
 // hmac.update(method)
 // hmac.update(space)
@@ -776,9 +778,160 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                             //     payload: error,
                             // })
                         })
+                } else if (sendType === 2) {
+                    const date = Date.now().toString()
+                    const hmacEmail = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+                    hmacEmail.update(method)
+                    hmacEmail.update(space)
+                    hmacEmail.update(urlEmailRequest)
+                    hmacEmail.update(newLine)
+                    hmacEmail.update(date)
+                    hmacEmail.update(newLine)
+                    hmacEmail.update(NCP_accessKey)
+                    const hashEmail = hmacEmail.finalize()
+                    const signatureEmail = hashEmail.toString(CryptoJS.enc.Base64)
+
+                    axios({
+                        method: method,
+                        json: true,
+                        url: urlEmailEndpoint,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-ncp-iam-access-key': NCP_accessKey,
+                            'x-ncp-apigw-timestamp': date,
+                            'x-ncp-apigw-signature-v2': signatureEmail,
+                        },
+                        data: {
+                            senderName: '뷰즈온더고 서베이',
+                            senderAddress: 'no_reply@locomotionview.com',
+                            title: '귀하의 의견이 필요합니다.',
+                            body: `설문조사 링크 \n https://survey.gift/${surveyCode}/a`,
+                            recipients: [
+                                {
+                                    address: 'jwlryk@gmail.com',
+                                    name: null,
+                                    type: 'R',
+                                    parameters: {},
+                                },
+                            ],
+                            individual: true,
+                            advertising: false,
+                        },
+                    })
+                        .then(async (aRes) => {
+                            debug.axios('aRes', aRes.data)
+                            // return res.status(200).json({
+                            //     isSuccess: true,
+                            //     code: 200,
+                            //     msg: '본인인증 문자 발송 성공',
+                            //     payload: aRes.data,
+                            // })
+                        })
+                        .catch((error) => {
+                            debug.fail('catch', error.response.data)
+                            // return res.status(402).json({
+                            //     isSuccess: false,
+                            //     code: 402,
+                            //     msg: '본인인증 문자 발송 오류',
+                            //     payload: error,
+                            // })
+                        })
                 }
             })
         }
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Survey Change & Dstribute Success',
+            payload: {
+                surveyCode,
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
+// [생성자 호출 - post] 관리자 모드 배포 신규
+router.post('/survey/disdribute/email', async (req, res) => {
+    console.log(req.body)
+    try {
+        const {
+            UserCode,
+            surveyCode,
+            // surveyType,
+            surveyJson,
+            sendType,
+            sendContact,
+            sendURL,
+            thumbnail,
+            fileCode,
+        } = req.body
+
+        const date = Date.now().toString()
+        const hmacEmail = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
+        hmacEmail.update(method)
+        hmacEmail.update(space)
+        hmacEmail.update(urlEmailRequest)
+        hmacEmail.update(newLine)
+        hmacEmail.update(date)
+        hmacEmail.update(newLine)
+        hmacEmail.update(NCP_accessKey)
+        const hashEmail = hmacEmail.finalize()
+        const signatureEmail = hashEmail.toString(CryptoJS.enc.Base64)
+
+        axios({
+            method: method,
+            json: true,
+            url: urlEmailEndpoint,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-ncp-iam-access-key': NCP_accessKey,
+                'x-ncp-apigw-timestamp': date,
+                'x-ncp-apigw-signature-v2': signatureEmail,
+            },
+            data: {
+                senderName: '뷰즈온더고 서베이',
+                senderAddress: 'no_reply@locomotionview.com',
+                title: '귀하의 의견이 필요합니다.',
+                body: `설문조사 링크 \n https://survey.gift/${surveyCode}/a`,
+                recipients: [
+                    {
+                        address: 'jwlryk@gmail.com',
+                        name: null,
+                        type: 'R',
+                        parameters: {},
+                    },
+                ],
+                individual: true,
+                advertising: false,
+            },
+        })
+            .then(async (aRes) => {
+                debug.axios('aRes', aRes.data)
+                // return res.status(200).json({
+                //     isSuccess: true,
+                //     code: 200,
+                //     msg: '본인인증 문자 발송 성공',
+                //     payload: aRes.data,
+                // })
+            })
+            .catch((error) => {
+                debug.fail('catch', error.response.data)
+                // return res.status(402).json({
+                //     isSuccess: false,
+                //     code: 402,
+                //     msg: '본인인증 문자 발송 오류',
+                //     payload: error,
+                // })
+            })
 
         return res.status(200).json({
             isSuccess: true,

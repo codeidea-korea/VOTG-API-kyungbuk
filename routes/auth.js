@@ -1068,4 +1068,43 @@ router.get('/panel/phone', async (req, res, next) => {
     }
 })
 
+router.delete('/account/delete', async (req, res) => {
+    try {
+        const { UserCode } = req.query
+        const User = await DB.Users.findOne({
+            where: { code: Buffer.from(UserCode, 'hex') },
+        })
+
+        // console.log('User', User)
+        debug.query('User', User)
+
+        if (User == null || User == undefined) {
+            return res.status(403).json({
+                isSuccess: false,
+                code: 403,
+                msg: 'No User',
+                payload: null,
+            })
+        }
+        const deleteAccount = await DB.Users.destroy({
+            where: { code: Buffer.from(UserCode, 'hex') },
+            force: true,
+        })
+
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'ok',
+            payload: deleteAccount,
+        })
+    } catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 module.exports = router
