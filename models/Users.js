@@ -56,6 +56,12 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 0,
       comment: "0:일반, 1:학생, 2:개인, 3:법인"
+    }, 
+    usertype: {
+      type: DataTypes.STRING(1),
+      allowNull: false,
+      defaultValue: 1,
+      comment: "1:일반회원, 2:기업회원"
     }
   }, {
     sequelize,

@@ -21,7 +21,11 @@ module.exports = () => {
                     if (!Users) {
                         return done(null, false, { reason: '존재하지 않는 이메일입니다!' })
                     }
+
+                    const hashedPassword = await bcrypt.hash(password, 12)
+
                     const result = await bcrypt.compare(password, Users.password)
+                    console.log('pwd', password, hashedPassword)
                     if (result) {
                         return done(null, Users)
                     }

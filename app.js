@@ -79,10 +79,7 @@ if (prodChecker) {
     app.use(morgan('combined'))
     app.use(helmet({ contentSecurityPolicy: false }))
     app.use(
-        cors({
-            origin: ['*', process.env.FRONT_URL, process.env.API_URL, process.env.SURVEY_URL],
-            credentials: true,
-        }),
+        cors(),
     )
     app.use(hpp())
 } else {

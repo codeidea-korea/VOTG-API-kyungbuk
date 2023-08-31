@@ -1328,6 +1328,7 @@ router.get('/survey/list', async (req, res) => {
             attributes: ['surveyCode', 'status', 'survey', 'sendType', 'sendContact', 'createdAt'],
             order: [['createdAt', 'DESC']],
         })
+        console.log('UserCode====================================================================', UserCode)
         const surveyAnswerResult = await Promise.all(
             exSurvey.map((v, index) => {
                 const ansResult = DB.SurveyOnlineAnswers.findAll({

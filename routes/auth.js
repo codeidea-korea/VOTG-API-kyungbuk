@@ -59,10 +59,11 @@ const routeName = 'Auth'
 router.post('/login', isNotLoggedIn, async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         if (err) {
-            console.error(err)
+            console.error('login err : ', err)
             return next(err)
         }
         if (info) {
+            console.log(info)
             return res.status(401).send(info.reason)
         }
 
@@ -125,6 +126,7 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
             mode: 0, // '0:사용자, 1:편집자, 2:관리자, 3:개발자',
             status: 0, // '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
             type: 0, // '0:Stater, 1:Standard, 2:Professional, 3:Dev',
+            usertype: req.body.userType, // 1:일반회원, 2:기업회원
         })
         const userDetail = await DB.UsersDetail.create({
             UserCode: Buffer.from(createUUID, 'hex'),
@@ -179,7 +181,7 @@ router.post('/user', async (req, res, next) => {
                 phone: phone,
                 email: email,
             },
-            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'status', 'type'],
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'status', 'type', 'userType'],
         })
         console.log('user', user)
         const detail = await DB.UsersDetail.findOne({
@@ -534,6 +536,7 @@ router.post('/sendCodeSENS', async (req, res) => {
                 })
             })
             .catch((error) => {
+                console.log('sms send result : ', error)
                 debug.fail('catch', error.data)
                 return res.status(402).json({
                     isSuccess: false,
