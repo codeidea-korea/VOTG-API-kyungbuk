@@ -21,9 +21,15 @@ module.exports = function(sequelize, DataTypes) {
     },
     phoneCode: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
       defaultValue: "",
       comment: "응답자 휴대전화번호 식별자"
+    },
+    emailCode: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: "",
+      comment: "응답자 이메일 식별자"
     },
     status: {
       type: DataTypes.INTEGER,

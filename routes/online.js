@@ -580,8 +580,9 @@ router.post('/survey/distribute/change/general', async (req, res) => {
         )
         //SENS
         const contactJson = JSON.parse(sendContact)
-        // console.log('contactJson', contactJson)
-        if (contactJson.phoneNumbers !== undefined) {
+        console.log('contactJson', contactJson)
+        if (contactJson.phoneNumbers !== undefined && (sendType === 0 || sendType === 1)) {
+            console.log('===== send sms start ======')
             // await DB.SurveyAnswersEachUrl.update(
             //     {
             //         status: 4,
@@ -592,6 +593,12 @@ router.post('/survey/distribute/change/general', async (req, res) => {
             //         },
             //     },
             // )
+            const removeDistributeBefore = await DB.SurveyAnswersEachUrl.destroy({
+                where: {
+                    surveyCode: surveyCode,
+                },
+                force: true,
+            })
 
             const checkDistributeBefore = await DB.SurveyAnswersEachUrl.findAll({
                 where: {
@@ -600,10 +607,12 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                 attributes: ['identifyCode', 'url', 'phoneCode'],
             })
 
+            console.log('============= phoneNumbers crypt start =============')
             const resultExistPhone = checkDistributeBefore?.map((item, pIndex) => {
                 const hashedPhone = decipher(item.phoneCode)
                 return hashedPhone
             })
+            console.log('============= phoneNumbers crypt end =============')
 
             contactJson.phoneNumbers.map(async (phone, pIndex) => {
                 let resultIdentifyCode = ''
@@ -701,6 +710,7 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                     })
                         .then(async (aRes) => {
                             debug.axios('aRes', aRes.data)
+                            console.log('설문조사 문자 발송 성공')
                             // return res.status(200).json({
                             //     isSuccess: true,
                             //     code: 200,
@@ -710,6 +720,7 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                         })
                         .catch((error) => {
                             debug.fail('catch', error.response.data)
+                            console.log('설문조사 문자 발송 실패')
                             // return res.status(error.response.status).json({
                             //     isSuccess: false,
                             //     code: error.response.status,
@@ -762,6 +773,7 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                     })
                         .then(async (aRes) => {
                             debug.axios('aRes', aRes.data)
+                            console.log('설문조사 카카오톡 발송 성공')
                             // return res.status(200).json({
                             //     isSuccess: true,
                             //     code: 200,
@@ -771,6 +783,7 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                         })
                         .catch((error) => {
                             debug.fail('catch', error.data)
+                            console.log('설문조사 카카오톡 발송 실패')
                             // return res.status(402).json({
                             //     isSuccess: false,
                             //     code: 402,
@@ -778,7 +791,81 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                             //     payload: error,
                             // })
                         })
-                } else if (sendType === 2) {
+                }
+            })
+        }else if (contactJson.emails !== undefined && contactJson.emails !== '' && sendType === 2) {
+            console.log('===== send email start ======')
+            const removeDistributeBefore = await DB.SurveyAnswersEachUrl.destroy({
+                where: {
+                    surveyCode: surveyCode,
+                },
+                force: true,
+            })
+            const checkDistributeBefore = await DB.SurveyAnswersEachUrl.findAll({
+                where: {
+                    surveyCode: surveyCode,
+                },
+                attributes: ['identifyCode', 'url', 'emailCode'],
+            })
+
+            const resultExistEmail = checkDistributeBefore?.map((item, eIndex) => {
+                const hashedEmail = decipher(item.emailCode)
+                return hashedEmail
+            })
+
+            contactJson.emails.map(async (email, eIndex) => {
+                let resultIdentifyCode = ''
+                let resultEachUrl = ''
+                // console.log('phoneNumbers', phone)
+                // cipher를 통해 생성된 이메일이 기존의 배포 데이터로서 존재하는지 체크
+                // emailCode,surveyCode 가 일치하는 정보가 있을 경우는 생성 x
+                // 기존 설문조사 생성 정보들의 emailCode 를 decipher로 복호화하여
+                // 발송하는 이메일과 동일한지 체크
+                // console.log('decipher(emailCode)', decipher(emailCode))
+                // 동일할 경우 identifyCode 갱신 X
+
+                //기존데이터가 존재할 경우 처리
+                if (resultExistEmail.length > 0) {
+                    debug.axios('resultExistEmail', resultExistEmail)
+                    if (resultExistEmail.includes(email)) {
+                        debug.axios('email', email)
+                        // console.log('hashedEmail', hashedEmail)
+                        // console.log('Exist item', item.identifyCode)
+
+                        const filteredData = checkDistributeBefore.filter(
+                            (item) => decipher(item.emailCode) == email,
+                        )
+                        debug.axios('filteredData.url', filteredData[0].url)
+                        resultEachUrl = filteredData[0].url
+                        const createSurveyDocuments = await DB.SurveyAnswersEachUrl.update(
+                            {
+                                status: 5,
+                            },
+                            {
+                                where: {
+                                    identifyCode: filteredData[0].identifyCode,
+                                    url: filteredData[0].url,
+                                    surveyCode: surveyCode,
+                                },
+                            },
+                        )
+                    }
+                }else { // 기존데이터가 존재하지 않을때 처리
+                    console.log('이메일 체크', email, surveyCode)
+                    resultIdentifyCode = Buffer.from(uuid().toString().replace(/-/g, ''), 'hex')
+                    resultEachUrl = createResourceCode(8)
+                    const emailCode = cipher(email)
+                    const createSurveyDocuments = await DB.SurveyAnswersEachUrl.create({
+                        identifyCode: resultIdentifyCode,
+                        url: resultEachUrl,
+                        emailCode: emailCode,
+                        surveyCode: surveyCode,
+                        answer: `[]`,
+                        status: 0,
+                    })
+                }
+
+                if (sendType === 2) {
                     const date = Date.now().toString()
                     const hmacEmail = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, NCP_secretKey)
                     hmacEmail.update(method)
@@ -808,7 +895,7 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                             body: `설문조사 링크 \n https://survey.gift/${surveyCode}/a`,
                             recipients: [
                                 {
-                                    address: 'jwlryk@gmail.com',
+                                    address: email,
                                     name: null,
                                     type: 'R',
                                     parameters: {},
@@ -820,21 +907,21 @@ router.post('/survey/distribute/change/general', async (req, res) => {
                     })
                         .then(async (aRes) => {
                             debug.axios('aRes', aRes.data)
-                            // return res.status(200).json({
-                            //     isSuccess: true,
-                            //     code: 200,
-                            //     msg: '본인인증 문자 발송 성공',
-                            //     payload: aRes.data,
-                            // })
+                            return res.status(200).json({
+                                isSuccess: true,
+                                code: 200,
+                                msg: '설문조사 이메일 발송 성공',
+                                payload: aRes.data,
+                            })
                         })
                         .catch((error) => {
                             debug.fail('catch', error.response.data)
-                            // return res.status(402).json({
-                            //     isSuccess: false,
-                            //     code: 402,
-                            //     msg: '본인인증 문자 발송 오류',
-                            //     payload: error,
-                            // })
+                            return res.status(402).json({
+                                isSuccess: false,
+                                code: 402,
+                                msg: '설문조사 이메일 발송 오류',
+                                payload: error,
+                            })
                         })
                 }
             })
