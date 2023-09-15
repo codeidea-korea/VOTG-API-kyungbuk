@@ -116,6 +116,7 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
         }
         const hashedPassword = await bcrypt.hash(req.body.password, 12)
         const createUUID = uuid().toString().replace(/-/g, '')
+        console.log('req.body ==============================================', req.body)
         const user = await DB.Users.create({
             code: Buffer.from(createUUID, 'hex'),
             name: req.body.name,
@@ -127,6 +128,11 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
             status: 0, // '0:대기(회색), 1:경고(노랑), 2:정지(빨강), 3:승인(검정), 4:삭제(보라)',
             type: 0, // '0:Stater, 1:Standard, 2:Professional, 3:Dev',
             usertype: req.body.userType, // 1:일반회원, 2:기업회원
+            facility: req.body.facility,
+            region: req.body.region, 
+            area: req.body.area, 
+            floor: req.body.floor, 
+            analysis: req.body.analysis, 
         })
         const userDetail = await DB.UsersDetail.create({
             UserCode: Buffer.from(createUUID, 'hex'),
@@ -181,9 +187,9 @@ router.post('/user', async (req, res, next) => {
                 phone: phone,
                 email: email,
             },
-            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'status', 'type', 'userType'],
+            attributes: ['code', 'name', 'phone', 'email', 'nickname', 'mode', 'status', 'type', 'userType', 'facility', 'region', 'area', 'floor', 'analysis'],
         })
-        console.log('user', user)
+        console.log('user info ==================================', user)
         const detail = await DB.UsersDetail.findOne({
             where: {
                 UserCode: user.code,

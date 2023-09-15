@@ -59,9 +59,33 @@ module.exports = function(sequelize, DataTypes) {
     }, 
     usertype: {
       type: DataTypes.STRING(1),
-      allowNull: false,
-      defaultValue: 1,
+      allowNull: true,
       comment: "1:일반회원, 2:기업회원"
+    },
+    facility: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "시설물유형"
+    },
+    region: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "지역구분"
+    },
+    area: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "연면적"
+    },
+    floor: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "지상층수"
+    },
+    analysis: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "분석/시각화"
     }
   }, {
     sequelize,
