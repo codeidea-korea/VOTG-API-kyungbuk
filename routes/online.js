@@ -129,6 +129,40 @@ router.post('/upload/logo', cors(), upload_SurveyLogo.single('file'), async (req
     }
 })
 
+router.post('/upload/ipa', cors(), upload_SurveyLogo.single('file'), async (req, res) => {
+    // console.log(req)
+    try {
+        const { destination, encoding, fieldname, filename, mimetype, originalname, path } =
+            req.file
+        const { UserCode } = req.body
+        const createUploadLogs = await DB.UsersUploadLogs.create({
+            UserCode: Buffer.from(UserCode, 'hex'),
+            fileCode: filename,
+            fileName: originalname,
+            filePath: path,
+        })
+        console.log('createUploadLogs', createUploadLogs)
+        return res.status(200).json({
+            isSuccess: true,
+            code: 200,
+            msg: 'Upload Success',
+            payload: {
+                filename,
+                originalname,
+                filePath: path.substr(7), // Exclude => public/
+            },
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).json({
+            isSuccess: false,
+            code: 400,
+            msg: 'Bad Request',
+            payload: error,
+        })
+    }
+})
+
 // [생성자 호출 - post]  새로 생성 or 업데이트 판단 (설문지 제작중 다음버튼 누를시 자동 저장)
 router.post('/survey/save', async (req, res) => {
     // console.log(req)
